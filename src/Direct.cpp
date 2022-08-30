@@ -26,6 +26,22 @@
 #include "bin/images/Schrift2.bmp.h"
 #include "bin/images/Textfeld.bmp.h"
 
+#include "bin/images/Animation.BMP.c"
+#include "bin/images/Bau.bmp.c"
+#include "bin/images/Baum.bmp.c"
+#include "bin/images/Buttons.bmp.c"
+#include "bin/images/Credits.bmp.c"
+#include "bin/images/Cursor.BMP.c"
+#include "bin/images/GuyAni.bmp.c"
+#include "bin/images/Inventar.bmp.c"
+#include "bin/images/Logo.png.c"
+#include "bin/images/Misc.BMP.c"
+#include "bin/images/Panel.png.c"
+#include "bin/images/Papier.bmp.c"
+#include "bin/images/Schrift1.BMP.c"
+#include "bin/images/Schrift2.bmp.c"
+#include "bin/images/Textfeld.bmp.c"
+
 #include <SFML/Window.hpp>
 
 namespace Direct {
@@ -69,85 +85,10 @@ bool InitDDraw()
     s_darknessColor = sf::Color::White;
 
     lpDDSBack = Renderer::createEmptyTexture(MAX_SCREEN_X, MAX_SCREEN_Y, sf::Color(0, 0, 0));
-#if 0
-    // Create the main DirectDraw object
-    HRESULT ddrval = dx_DirectDrawCreate(nullptr, &pDD, nullptr);
 
-    if (ddrval != DD_OK) {
-        goto error;
-    }
-
-//        ddrval = pDD->QueryInterface(IID_IDirectDraw, reinterpret_cast<LPVOID *>(& lpDD));
-//        if (ddrval != DD_OK)
-//            goto error;
-
-    // Get exclusive mode
-//        ddrval = lpDD->SetCooperativeLevel(hWnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
-//        if (ddrval != DD_OK)
-//            goto error;
-
-    // Set the video mode to 800x600x16
-    ddrval = lpDD->SetDisplayMode(MAX_SCREEN_X, MAX_SCREEN_Y, 32);
-
-    if (ddrval != DD_OK) {
-        switch (ddrval) {
-        case DDERR_GENERIC:
-        case DDERR_INVALIDMODE:
-        case DDERR_INVALIDOBJECT:
-
-//            case DDERR_INVALIDPARAMS:
-        case DDERR_LOCKEDSURFACES:
-        case DDERR_NOEXCLUSIVEMODE:
-        case DDERR_SURFACEBUSY:
-//            case DDERR_UNSUPPORTED:
-//            case DDERR_UNSUPPORTEDMODE:
-        {
-//                    MessageBeep(MB_OK);
-            break;
-        }
-
-        case DDERR_WASSTILLDRAWING:
-            ;
-        }
-
-        goto error;
-    }
-#endif
-
-//    ZeroMemory(&ddsd2, sizeof(ddsd2));
-//    ddsd2.dwSize = sizeof(ddsd2);
-
-//    // Create the primary surface with 1 back buffer
-//    ZeroMemory(&ddsd, sizeof(ddsd));
-//    ddsd.dwSize = sizeof(ddsd);
-////        ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-////        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-//    ddsd.dwBackBufferCount = 1; // Anzahl ??
-//    screenTexture = new sf::Texture;
-//    ddrval = lpDD->CreateSurface(&ddsd, &lpDDSPrimary, nullptr);
-
-//    if (ddrval != DD_OK) {
-//        goto error;
-//    }
-
-    // für gamma-ablenden
-//        lpDDSPrimary->QueryInterface(IID_IDirectDrawGammaControl, reinterpret_cast<void **>(&lpDDGammaControl));
-//    lpDDGammaControl->GetGammaRamp(0, &DDGammaOld);
-//    lpDDGammaControl->GetGammaRamp(0, &DDGammaRamp);
-
-//        ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
-//        ddrval = lpDDSPrimary->GetAttachedSurface(&ddscaps, &lpDDSBack);
-
-//    if (ddrval != DD_OK) {
-//        goto error;
-//    }
-
-//    ddsd.dwSize = sizeof(ddsd); // Tell DirectDraw which members are valid.
-//        ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
-//        ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
     // In diese Surface sollen die Bausteine geladen werden
-    lpDDSMisc = Renderer::loadTexture(resource_Misc_BMP_data, resource_Misc_BMP_size);
-    if (!lpDDSMisc) {
+    lpDDSTiles = Renderer::loadTexture(resource_Misc_BMP_data, resource_Misc_BMP_size);
+    if (!lpDDSTiles) {
         puts("Failed to load misc");
         return false;
     }
@@ -251,7 +192,7 @@ bool InitDDraw()
     }
 
     // In diese Surface soll die MiniMap gespeichert werden
-    lpDDSKarte = Renderer::createEmptyTexture(2 * MAX_TILES_X, 2 * MAX_TILESY, sf::Color::Transparent);
+    lpDDSKarte = Renderer::createEmptyTexture(2 * MAX_TILES_X, 2 * MAX_TILES_Y, sf::Color::Transparent);
 
     // The landscape should be saved in this surface
 //    lpDDSScape = Renderer::createEmptyTexture(2 * MAX_SURFACE_X, 2 * MAX_SURFACE_Y, sf::Color::Transparent);
@@ -512,7 +453,7 @@ short CheckKey()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
         {
             short x,y;
-            for (y=0;y<MAX_TILESY;y++)
+            for (y=0;y<MAX_TILES_Y;y++)
             for (x=0;x<MAX_TILES_X;x++)
             Landscape[x][y].Discovered = true;
             World::Generate();

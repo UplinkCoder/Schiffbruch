@@ -24,6 +24,32 @@
 #include "bin/sounds/trinken.wav.h"
 #include "bin/sounds/wald.wav.h"
 #include "bin/sounds/wolf.wav.h"
+
+#include "bin/sounds/abspann.wav.c"
+#include "bin/sounds/angel.wav.c"
+#include "bin/sounds/baumfaellt.wav.c"
+#include "bin/sounds/brandung.wav.c"
+#include "bin/sounds/crash.wav.c"
+#include "bin/sounds/erfindung.wav.c"
+#include "bin/sounds/faellen.wav.c"
+#include "bin/sounds/feuer.wav.c"
+#include "bin/sounds/fluss.wav.c"
+#include "bin/sounds/hammer.wav.c"
+#include "bin/sounds/klick2.wav.c"
+#include "bin/sounds/klick.wav.c"
+#include "bin/sounds/knistern.wav.c"
+#include "bin/sounds/logo.wav.c"
+#include "bin/sounds/platsch.wav.c"
+#include "bin/sounds/schaufeln.wav.c"
+#include "bin/sounds/schlagen.wav.c"
+#include "bin/sounds/schleuder.wav.c"
+#include "bin/sounds/schnarchen.wav.c"
+#include "bin/sounds/schwimmen.wav.c"
+#include "bin/sounds/sturm.wav.c"
+#include "bin/sounds/trinken.wav.c"
+#include "bin/sounds/wald.wav.c"
+#include "bin/sounds/wolf.wav.c"
+
 #include <string>
 #include <unordered_map>
 

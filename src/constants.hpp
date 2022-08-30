@@ -9,11 +9,16 @@ const int FONT2_LETTER_WIDTH = 10; // Breite der Schrift2
 const int FONT2_LETTER_HEIGHT = 15; // Höhe der Schrift2
 const int FONT2_LETTER_SPACING = 10; // Abstand zum nächsten Buchstaben
 const int MAX_TILES_X = 60; // Anzahl der Kacheln
-const int MAX_TILESY = 60;
+const int MAX_TILES_Y = 60;
 const int MAX_SURFACE_X = 3360; // Größe der Scapesurface
 const int MAX_SURFACE_Y = 1700;
+#if 1
 const int MAX_SCREEN_X = 1280; // Bildschirmauflösung
 const int MAX_SCREEN_Y = 720;
+#else
+const int MAX_SCREEN_X = 320; // Bildschirmauflösung
+const int MAX_SCREEN_Y = 200;
+#endif
 const int MOUNTAIN_HEIGHT = 3; // Hoehe des Gipfels
 const int MAX_RIVER_LENGTH = 1000; // Maximale Flusslänge
 const int NUMBER_OF_RIVERS = 1; // Wieviele Flüsse? Mehr als 1 funktioniert seltsamerweise nicht mehr..
@@ -223,4 +228,5 @@ enum Resources {
     Water = 0,
     Food = 1,
     Health = 2,
+    Max
 };

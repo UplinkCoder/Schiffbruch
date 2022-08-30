@@ -24,9 +24,19 @@ struct Coordinate {
     short y;
 };
 
-struct RGBSTRUCT {
+typedef struct RGBSTRUCT {
     uint8_t r, g, b;
+} RGBSTRUCT;
+
+#pragma pack(push, 1)
+struct RequiredMateral
+{
+    unsigned char Material;
+    unsigned char Amount;
 };
+
+#pragma pack(pop)
+#define MAX_REQUIRED_MATERIALS 6
 
 struct GUY {
     bool IsActive; // Ist er aktiv?
@@ -36,7 +46,7 @@ struct GUY {
     Coordinate ScreenPosition; // Absolute Position der Spielfigur
     short AnimationState = Tiles::INVALID; // Was macht er gerade? (Animation)(linkslaufen,rechtslaufen...,angeln..)
     short ActionStep; // Bei welcher Aktion (für die Aktionsprozeduren)
-    float ResourceAmount[3]; // Wieviel Wasservorrat usw
+    float ResourceAmount[Resources::Max]; // Wieviel Wasservorrat usw
     short Inventory[SPRITE_COUNT]; // Welche Rohstoffe usw. besitzt man
 };
 
@@ -52,9 +62,11 @@ struct BMP {
     short Speed; // Wieviel Bilder/sec
     short Sound; // Welcher Sound gehört dazu
     //zum bauen
-    short RequiredRawMaterials[SPRITE_COUNT]; // Anzahl des i.Rohstoffs, den man zum Bau benötigt
-    short RequiredActionCases; // Anzahl der Aktionsfaellen, die zum Bau benötigt werden
+    RequiredMateral RequiredMaterials[MAX_REQUIRED_MATERIALS]; // Anzahl des i.Rohstoffs, den man zum Bau benötigt
+    short RequiredActionCases; // Anzahl der Aktionsfaelle, die zum Bau benötigt werden
     bool First; // Ist es das erstemal gebaut, dann Hilfetext
+    
+    const char* Name; // name des tiles
 };
 
 struct WAV {
@@ -76,14 +88,14 @@ struct SCAPE {
     short xScreen, yScreen; // Die Koordinaten in der Scape-Surface
     bool Walkable; // notwendig für Pathfinding
     bool Discovered; // Ist dieses Feld schon aufgedeckt?
-    short RunningTime; // LaufZeit auf dieser Kachel (1 am schnellsten...)
+    short Slowdown; // LaufZeit auf dieser Kachel (1 am schnellsten...)
     short Object = Tiles::INVALID; // Welches Objekt steht drauf (z.Bsp. Flüsse)
     bool ReverseAnimation; // Wird die Objektanimation umgekehrt abgespielt (für flüsse)
     Coordinate ObjectPosOffset; // Die Koordinaten des Objekts (relativ zu xScreen und yScreen)
     float AnimationPhase; // Welche Animationsphase oder Bildversion
     short ConstructionActionStep; // Welche Aktionsnummer (um Baustellen vortzusetzen)
     Coordinate GPosAlt; // Damit der Guy an der richtigen Stelle (x,y) weiterbaut
-    short RequiredRawMaterials[SPRITE_COUNT]; //Anzahl des i.Rohstoffs, den man noch zum bauen braucht
+    RequiredMateral RequiredMaterials[MAX_REQUIRED_MATERIALS]; //Anzahl des i.Rohstoffs, den man noch zum bauen braucht
     float FireTimer; //Bis jetzt nur fürs Feuer nötig
 };
 

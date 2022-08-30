@@ -20,15 +20,15 @@
 Application *Application::s_instance;
 
 Application::Application(const std::string &name)
-    : m_window({MAX_SCREEN_X, MAX_SCREEN_Y}, name, sf::Style::None)
+    : m_window({MAX_SCREEN_X, MAX_SCREEN_Y}, name, sf::Style::Fullscreen)
 , m_name(name)
 , m_time(std::time(nullptr))
 {
     // holy shit sfml
     // have to do this entire dance because SFML is a piling steam of shit
-    const sf::Vector2u size(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height) ;
+    const sf::Vector2u size(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height - 20);
     m_window.setSize(size);
-    m_window.setPosition({0, 0});
+    m_window.setPosition({0, 5});
 
     s_instance = this;
 
@@ -85,6 +85,11 @@ void Application::process_events()
             if (event.key.code == sf::Keyboard::F4) {
                 Direct::finiObjects();
                 m_window.close();
+            }
+            if (event.key.code == sf::Keyboard::F3) {
+                Guy.ResourceAmount[Resources::Water] = 100;
+                Guy.ResourceAmount[Resources::Food] = 100;
+                Guy.ResourceAmount[Resources::Health] = 100;
             }
             break;
         default:
@@ -199,6 +204,7 @@ void Application::update()
 void Application::drawToScreen(const sf::Drawable &sprite)
 {
     s_instance->m_screenContent.draw(sprite);
+    // s_instance->m_window.display();
 }
 
 void Application::drawSprite(const sf::Sprite &sprite)

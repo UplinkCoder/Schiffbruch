@@ -9,6 +9,86 @@
 #include "World.hpp"
 
 #include <fstream>
+const char* SurfaceToString(sf::Texture* surface);
+
+void WriteFontInfo()
+{
+    short Width = 0;
+    short Height = 0;
+    short Art = 0;
+    const char* fName = "Font_info.txt";
+    FILE* fontInfoFd = fopen(fName, "w");
+
+
+    for(Art = 1; Art <= 2; Art++)
+    {
+        if (Art == 1) {
+            fprintf(fontInfoFd, "\nName = %s\n", "Schrift1");
+            Width = FONT1_LETTER_WIDTH;
+            Height = FONT1_LETTER_HEIGHT;
+        }
+
+        if (Art == 2) {
+            fprintf(fontInfoFd, "\n\nName = %s\n", "Schrift2");
+            Width = FONT2_LETTER_WIDTH;
+            Height = FONT2_LETTER_HEIGHT;
+        }
+
+        fprintf(fontInfoFd, "Width = %d\n", Width);
+        fprintf(fontInfoFd, "Height = %d\n", Height);
+        // Alle Zeichen durchgehen
+        for (char c = ' '; c <= '~'; c++) {
+
+            // Korrekte indexNummer ermitteln
+            short cindex = c - ' ';
+            short y = -1;
+            short x = -1;
+
+            if ((c >= ' ') && (c <= '~')) {
+                x = (cindex % 16) * Width;
+                y = (cindex / 16) * Height;
+            }
+
+            if (x != -1)
+            {
+                fprintf(fontInfoFd, "[%c] = {%d, %d}\n", c, x, y);
+            }
+        }
+    }
+
+    fclose(fontInfoFd);
+}
+
+
+void WriteAssetInfo()
+{
+    int i;
+    FILE* assetInfoFd = fopen("/mnt/git/schiffbruch/assetInfo.txt", "w");
+
+    for(i = 0; i < (sizeof(Bmp) / sizeof(Bmp[0])); i++)
+    {
+        BMP tile = Bmp[i];
+        fprintf (assetInfoFd, "Name = %s\n", tile.Name);
+        fprintf (assetInfoFd, "TileIndex = %d\n", i);
+        fprintf (assetInfoFd, "AnimationPhaseCount = %d\n", tile.AnimationPhaseCount);
+
+        fprintf (assetInfoFd, "sourceRect.left = %d\n", tile.sourceRect.left);
+        fprintf (assetInfoFd, "sourceRect.top = %d\n", tile.sourceRect.top);
+        fprintf (assetInfoFd, "sourceRect.right = %d\n", tile.sourceRect.right);
+        fprintf (assetInfoFd, "sourceRect.bottom = %d\n", tile.sourceRect.bottom);
+
+        fprintf (assetInfoFd, "targetRect.left = %d\n", tile.targetRect.left);
+        fprintf (assetInfoFd, "targetRect.top = %d\n", tile.targetRect.top);
+        fprintf (assetInfoFd, "targetRect.right = %d\n", tile.targetRect.right);
+        fprintf (assetInfoFd, "targetRect.bottom = %d\n", tile.targetRect.bottom);
+
+        fprintf (assetInfoFd, "Width = %d\n", tile.Width);
+        fprintf (assetInfoFd, "Height = %d\n", tile.Height);
+        fprintf (assetInfoFd, "Texture = %s\n\n", SurfaceToString(tile.Surface));
+    }
+
+    fclose(assetInfoFd);
+}
 
 namespace Game {
 void SaveGame()
@@ -101,8 +181,8 @@ void InitStructs()
         Bmp[i].Height = 0;
         Bmp[i].Sound = 0;
 
-        for (k = 0; k < SPRITE_COUNT; k++) {
-            Bmp[i].RequiredRawMaterials[k] = 0;
+        for (k = 0; k < MAX_REQUIRED_MATERIALS; k++) {
+            Bmp[i].RequiredMaterials[k] = nullMaterial;
         }
 
         Bmp[i].RequiredActionCases = 0;
@@ -124,6 +204,11 @@ void InitStructs()
         Bmp[i].Height = 18;
     }
 
+    Bmp[Tiles::GUY_LEFT].Name = "GUY_LEFT";
+    Bmp[Tiles::GUY_OVER].Name = "GUY_OVER";
+    Bmp[Tiles::GUY_RIGHT].Name = "GUY_RIGHT";
+    Bmp[Tiles::GUY_BELOW].Name = "GUY_BELOW";
+
     for (i = Tiles::GUY_SEARCH; i <= Tiles::GUY_SLINGSHOT; i++) {
         Bmp[i].IsAnimationRunning = false;
         Bmp[i].AnimationPhase = 0;
@@ -139,6 +224,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SEARCH].Width = 11;
     Bmp[Tiles::GUY_SEARCH].Height = 14;
     Bmp[Tiles::GUY_SEARCH].Sound = Sound::CRACKLE;
+    Bmp[Tiles::GUY_SEARCH].Name = "GUY_SEARCH";
 
     Bmp[Tiles::GUY_EAT].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_EAT].Speed = 4;
@@ -149,6 +235,7 @@ void InitStructs()
     Bmp[Tiles::GUY_EAT].Width = 7;
     Bmp[Tiles::GUY_EAT].Height = 17;
     Bmp[Tiles::GUY_EAT].Sound = Sound::CRACKLE;
+    Bmp[Tiles::GUY_EAT].Name = "GUY_EAT";
 
     Bmp[Tiles::GUY_DRINK].AnimationPhaseCount = 5;
     Bmp[Tiles::GUY_DRINK].Speed = 4;
@@ -159,6 +246,7 @@ void InitStructs()
     Bmp[Tiles::GUY_DRINK].Width = 9;
     Bmp[Tiles::GUY_DRINK].Height = 13;
     Bmp[Tiles::GUY_DRINK].Sound = Sound::DRINK;
+    Bmp[Tiles::GUY_DRINK].Name = "GUY_DRINK";
 
     Bmp[Tiles::GUY_CHOP].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_CHOP].Speed = 6;
@@ -169,6 +257,7 @@ void InitStructs()
     Bmp[Tiles::GUY_CHOP].Width = 15;
     Bmp[Tiles::GUY_CHOP].Height = 19;
     Bmp[Tiles::GUY_CHOP].Sound = Sound::LOG;
+    Bmp[Tiles::GUY_CHOP].Name = "GUY_CHOP";
 
     Bmp[Tiles::GUY_WAITING].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_WAITING].Speed = 2;
@@ -178,6 +267,7 @@ void InitStructs()
     Bmp[Tiles::GUY_WAITING].sourceRect.bottom = 18;
     Bmp[Tiles::GUY_WAITING].Width = 7;
     Bmp[Tiles::GUY_WAITING].Height = 18;
+    Bmp[Tiles::GUY_WAITING].Name = "GUY_WAITING";
 
     Bmp[Tiles::GUY_FARMING].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_FARMING].Speed = 4;
@@ -187,6 +277,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FARMING].sourceRect.bottom = 18;
     Bmp[Tiles::GUY_FARMING].Width = 19;
     Bmp[Tiles::GUY_FARMING].Height = 18;
+    Bmp[Tiles::GUY_FARMING].Name = "GUY_FARMING";
 
     Bmp[Tiles::GUY_TIE_UP].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_TIE_UP].Speed = 1;
@@ -196,6 +287,7 @@ void InitStructs()
     Bmp[Tiles::GUY_TIE_UP].sourceRect.bottom = 18;
     Bmp[Tiles::GUY_TIE_UP].Width = 8;
     Bmp[Tiles::GUY_TIE_UP].Height = 18;
+    Bmp[Tiles::GUY_TIE_UP].Name = "GUY_TIE_UP";
 
     Bmp[Tiles::GUY_TIE_DOWN].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_TIE_DOWN].Speed = 1;
@@ -205,6 +297,7 @@ void InitStructs()
     Bmp[Tiles::GUY_TIE_DOWN].sourceRect.bottom = 36 + 18;
     Bmp[Tiles::GUY_TIE_DOWN].Width = 7;
     Bmp[Tiles::GUY_TIE_DOWN].Height = 18;
+    Bmp[Tiles::GUY_TIE_DOWN].Name = "GUY_TIE_DOWN";
 
     Bmp[Tiles::GUY_SLEEPING_TENT].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_SLEEPING_TENT].Speed = 1;
@@ -215,6 +308,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SLEEPING_TENT].Width = 20;
     Bmp[Tiles::GUY_SLEEPING_TENT].Height = 10;
     Bmp[Tiles::GUY_SLEEPING_TENT].Sound = Sound::SNORE;
+    Bmp[Tiles::GUY_SLEEPING_TENT].Name = "GUY_SLEEPING_TENT";
 
     Bmp[Tiles::GUY_SLEEPING].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_SLEEPING].Speed = 1;
@@ -225,6 +319,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SLEEPING].Width = 17;
     Bmp[Tiles::GUY_SLEEPING].Height = 18;
     Bmp[Tiles::GUY_SLEEPING].Sound = Sound::SNORE;
+    Bmp[Tiles::GUY_SLEEPING].Name = "GUY_SLEEPING";
 
     Bmp[Tiles::GUY_ENTER_TENT].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_ENTER_TENT].Speed = 4;
@@ -234,6 +329,7 @@ void InitStructs()
     Bmp[Tiles::GUY_ENTER_TENT].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_ENTER_TENT].Width = 7;
     Bmp[Tiles::GUY_ENTER_TENT].Height = 18;
+    Bmp[Tiles::GUY_ENTER_TENT].Name = "GUY_ENTER_TENT";
 
     Bmp[Tiles::GUY_LAYING_TENT].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_LAYING_TENT].Speed = 2;
@@ -243,6 +339,7 @@ void InitStructs()
     Bmp[Tiles::GUY_LAYING_TENT].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_LAYING_TENT].Width = 17;
     Bmp[Tiles::GUY_LAYING_TENT].Height = 18;
+    Bmp[Tiles::GUY_LAYING_TENT].Name = "GUY_LAYING_TENT";
 
     Bmp[Tiles::GUY_STAND_UP].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_STAND_UP].Speed = 2;
@@ -252,6 +349,7 @@ void InitStructs()
     Bmp[Tiles::GUY_STAND_UP].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_STAND_UP].Width = 9;
     Bmp[Tiles::GUY_STAND_UP].Height = 18;
+    Bmp[Tiles::GUY_STAND_UP].Name = "GUY_STAND_UP";
 
     Bmp[Tiles::GUY_FISHING_LEFT_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_FISHING_LEFT_1].Speed = 6;
@@ -261,6 +359,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_LEFT_1].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_FISHING_LEFT_1].Width = 16;
     Bmp[Tiles::GUY_FISHING_LEFT_1].Height = 17;
+    Bmp[Tiles::GUY_FISHING_LEFT_1].Name = "GUY_FISHING_LEFT_1";
 
     Bmp[Tiles::GUY_FISHING_ABOVE_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_FISHING_ABOVE_1].Speed = 6;
@@ -270,6 +369,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_ABOVE_1].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_FISHING_ABOVE_1].Width = 16;
     Bmp[Tiles::GUY_FISHING_ABOVE_1].Height = 17;
+    Bmp[Tiles::GUY_FISHING_ABOVE_1].Name = "GUY_FISHING_ABOVE_1";
 
     Bmp[Tiles::GUY_FISHING_RIGHT_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_FISHING_RIGHT_1].Speed = 6;
@@ -279,6 +379,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_RIGHT_1].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_FISHING_RIGHT_1].Width = 14;
     Bmp[Tiles::GUY_FISHING_RIGHT_1].Height = 17;
+    Bmp[Tiles::GUY_FISHING_RIGHT_1].Name = "GUY_FISHING_RIGHT_1";
 
     Bmp[Tiles::GUY_FISHING_BELOW_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_FISHING_BELOW_1].Speed = 6;
@@ -288,6 +389,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_BELOW_1].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_FISHING_BELOW_1].Width = 14;
     Bmp[Tiles::GUY_FISHING_BELOW_1].Height = 17;
+    Bmp[Tiles::GUY_FISHING_BELOW_1].Name = "GUY_FISHING_BELOW_1";
 
     Bmp[Tiles::GUY_FISHING_LEFT_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_FISHING_LEFT_2].Speed = 3;
@@ -297,6 +399,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_LEFT_2].sourceRect.bottom = 0 + 16;
     Bmp[Tiles::GUY_FISHING_LEFT_2].Width = 16;
     Bmp[Tiles::GUY_FISHING_LEFT_2].Height = 16;
+    Bmp[Tiles::GUY_FISHING_LEFT_2].Name = "GUY_FISHING_LEFT_2";
 
     Bmp[Tiles::GUY_FISHING_ABOVE_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_FISHING_ABOVE_2].Speed = 3;
@@ -306,6 +409,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_ABOVE_2].sourceRect.bottom = 0 + 16;
     Bmp[Tiles::GUY_FISHING_ABOVE_2].Width = 16;
     Bmp[Tiles::GUY_FISHING_ABOVE_2].Height = 16;
+    Bmp[Tiles::GUY_FISHING_ABOVE_2].Name = "GUY_FISHING_ABOVE_2";
 
     Bmp[Tiles::GUY_FISHING_RIGHT_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_FISHING_RIGHT_2].Speed = 3;
@@ -315,6 +419,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_RIGHT_2].sourceRect.bottom = 0 + 15;
     Bmp[Tiles::GUY_FISHING_RIGHT_2].Width = 14;
     Bmp[Tiles::GUY_FISHING_RIGHT_2].Height = 15;
+    Bmp[Tiles::GUY_FISHING_RIGHT_2].Name = "GUY_FISHING_RIGHT_2";
 
     Bmp[Tiles::GUY_FISHING_BELOW_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_FISHING_BELOW_2].Speed = 3;
@@ -324,6 +429,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_BELOW_2].sourceRect.bottom = 0 + 15;
     Bmp[Tiles::GUY_FISHING_BELOW_2].Width = 14;
     Bmp[Tiles::GUY_FISHING_BELOW_2].Height = 15;
+    Bmp[Tiles::GUY_FISHING_BELOW_2].Name = "GUY_FISHING_BELOW_2";
 
     Bmp[Tiles::GUY_FISHING_LEFT_3].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_FISHING_LEFT_3].Speed = 2;
@@ -333,6 +439,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_LEFT_3].sourceRect.bottom = 0 + 16;
     Bmp[Tiles::GUY_FISHING_LEFT_3].Width = 16;
     Bmp[Tiles::GUY_FISHING_LEFT_3].Height = 16;
+    Bmp[Tiles::GUY_FISHING_LEFT_3].Name = "GUY_FISHING_LEFT_3";
 
     Bmp[Tiles::GUY_FISHING_ABOVE_3].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_FISHING_ABOVE_3].Speed = 2;
@@ -342,6 +449,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_ABOVE_3].sourceRect.bottom = 0 + 16;
     Bmp[Tiles::GUY_FISHING_ABOVE_3].Width = 16;
     Bmp[Tiles::GUY_FISHING_ABOVE_3].Height = 16;
+    Bmp[Tiles::GUY_FISHING_ABOVE_3].Name = "GUY_FISHING_ABOVE_3";
 
     Bmp[Tiles::GUY_FISHING_RIGHT_3].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_FISHING_RIGHT_3].Speed = 2;
@@ -351,6 +459,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_RIGHT_3].sourceRect.bottom = 0 + 15;
     Bmp[Tiles::GUY_FISHING_RIGHT_3].Width = 14;
     Bmp[Tiles::GUY_FISHING_RIGHT_3].Height = 15;
+    Bmp[Tiles::GUY_FISHING_RIGHT_3].Name = "GUY_FISHING_RIGHT_3";
 
     Bmp[Tiles::GUY_FISHING_BELOW_3].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_FISHING_BELOW_3].Speed = 2;
@@ -360,6 +469,7 @@ void InitStructs()
     Bmp[Tiles::GUY_FISHING_BELOW_3].sourceRect.bottom = 0 + 15;
     Bmp[Tiles::GUY_FISHING_BELOW_3].Width = 14;
     Bmp[Tiles::GUY_FISHING_BELOW_3].Height = 15;
+    Bmp[Tiles::GUY_FISHING_BELOW_3].Name = "GUY_FISHING_BELOW_3";
 
     Bmp[Tiles::GUY_BEAT].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_BEAT].Speed = 7;
@@ -370,6 +480,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BEAT].Width = 12;
     Bmp[Tiles::GUY_BEAT].Height = 24;
     Bmp[Tiles::GUY_BEAT].Sound = Sound::HIT;
+    Bmp[Tiles::GUY_BEAT].Name = "GUY_BEAT";
 
     Bmp[Tiles::GUY_BOAT_LEFT].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_LEFT].Speed = 10;
@@ -379,6 +490,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_LEFT].sourceRect.bottom = 0 + 21;
     Bmp[Tiles::GUY_BOAT_LEFT].Width = 26;
     Bmp[Tiles::GUY_BOAT_LEFT].Height = 21;
+    Bmp[Tiles::GUY_BOAT_LEFT].Name = "GUY_BOAT_LEFT";
 
     Bmp[Tiles::GUY_BOAT_ABOVE].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_ABOVE].Speed = 10;
@@ -388,6 +500,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_ABOVE].sourceRect.bottom = 0 + 21;
     Bmp[Tiles::GUY_BOAT_ABOVE].Width = 26;
     Bmp[Tiles::GUY_BOAT_ABOVE].Height = 21;
+    Bmp[Tiles::GUY_BOAT_ABOVE].Name = "GUY_BOAT_ABOVE";
 
     Bmp[Tiles::GUY_BOAT_RIGHT].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_RIGHT].Speed = 10;
@@ -397,6 +510,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_RIGHT].sourceRect.bottom = 0 + 21;
     Bmp[Tiles::GUY_BOAT_RIGHT].Width = 26;
     Bmp[Tiles::GUY_BOAT_RIGHT].Height = 21;
+    Bmp[Tiles::GUY_BOAT_RIGHT].Name = "GUY_BOAT_RIGHT";
 
     Bmp[Tiles::GUY_BOAT_BELOW].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_BELOW].Speed = 10;
@@ -406,6 +520,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_BELOW].sourceRect.bottom = 0 + 21;
     Bmp[Tiles::GUY_BOAT_BELOW].Width = 26;
     Bmp[Tiles::GUY_BOAT_BELOW].Height = 21;
+    Bmp[Tiles::GUY_BOAT_BELOW].Name = "GUY_BOAT_BELOW";
 
     Bmp[Tiles::GUY_BOAT_FISHING_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_FISHING_1].Speed = 6;
@@ -415,6 +530,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_FISHING_1].sourceRect.bottom = 0 + 25;
     Bmp[Tiles::GUY_BOAT_FISHING_1].Width = 26;
     Bmp[Tiles::GUY_BOAT_FISHING_1].Height = 25;
+    Bmp[Tiles::GUY_BOAT_FISHING_1].Name = "GUY_BOAT_FISHING_1";
 
     Bmp[Tiles::GUY_BOAT_FISHING_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_BOAT_FISHING_2].Speed = 3;
@@ -424,6 +540,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_FISHING_2].sourceRect.bottom = 0 + 25;
     Bmp[Tiles::GUY_BOAT_FISHING_2].Width = 26;
     Bmp[Tiles::GUY_BOAT_FISHING_2].Height = 25;
+    Bmp[Tiles::GUY_BOAT_FISHING_2].Name = "GUY_BOAT_FISHING_2";
 
     Bmp[Tiles::GUY_BOAT_FISHING_3].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_BOAT_FISHING_3].Speed = 2;
@@ -433,6 +550,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_FISHING_3].sourceRect.bottom = 0 + 25;
     Bmp[Tiles::GUY_BOAT_FISHING_3].Width = 26;
     Bmp[Tiles::GUY_BOAT_FISHING_3].Height = 25;
+    Bmp[Tiles::GUY_BOAT_FISHING_3].Name = "GUY_BOAT_FISHING_3";
 
     Bmp[Tiles::GUY_DIVING_1].AnimationPhaseCount = 5;
     Bmp[Tiles::GUY_DIVING_1].Speed = 5;
@@ -442,6 +560,7 @@ void InitStructs()
     Bmp[Tiles::GUY_DIVING_1].sourceRect.bottom = 0 + 27;
     Bmp[Tiles::GUY_DIVING_1].Width = 26;
     Bmp[Tiles::GUY_DIVING_1].Height = 27;
+    Bmp[Tiles::GUY_DIVING_1].Name = "GUY_DIVING_1";
 
     Bmp[Tiles::GUY_DIVING_2].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_DIVING_2].Speed = 3;
@@ -451,6 +570,7 @@ void InitStructs()
     Bmp[Tiles::GUY_DIVING_2].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_DIVING_2].Width = 26;
     Bmp[Tiles::GUY_DIVING_2].Height = 17;
+    Bmp[Tiles::GUY_DIVING_2].Name = "GUY_DIVING_2";
 
     Bmp[Tiles::GUY_DIVING_3].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_DIVING_3].Speed = 2;
@@ -460,6 +580,7 @@ void InitStructs()
     Bmp[Tiles::GUY_DIVING_3].sourceRect.bottom = 0 + 17;
     Bmp[Tiles::GUY_DIVING_3].Width = 26;
     Bmp[Tiles::GUY_DIVING_3].Height = 17;
+    Bmp[Tiles::GUY_DIVING_3].Name = "GUY_DIVING_3";
 
     Bmp[Tiles::GUY_HAMMER_1].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_HAMMER_1].Speed = 4;
@@ -470,6 +591,7 @@ void InitStructs()
     Bmp[Tiles::GUY_HAMMER_1].Width = 9;
     Bmp[Tiles::GUY_HAMMER_1].Height = 18;
     Bmp[Tiles::GUY_HAMMER_1].Sound = Sound::HAMMER;
+    Bmp[Tiles::GUY_HAMMER_1].Name = "GUY_HAMMER_1";
 
     Bmp[Tiles::GUY_CLIMBING_1].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_CLIMBING_1].Speed = 2;
@@ -479,6 +601,7 @@ void InitStructs()
     Bmp[Tiles::GUY_CLIMBING_1].sourceRect.bottom = 0 + 34;
     Bmp[Tiles::GUY_CLIMBING_1].Width = 7;
     Bmp[Tiles::GUY_CLIMBING_1].Height = 34;
+    Bmp[Tiles::GUY_CLIMBING_1].Name = "GUY_CLIMBING_1";
 
     Bmp[Tiles::GUY_CLIMBING_2].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_CLIMBING_2].Speed = 2;
@@ -488,6 +611,7 @@ void InitStructs()
     Bmp[Tiles::GUY_CLIMBING_2].sourceRect.bottom = 0 + 34;
     Bmp[Tiles::GUY_CLIMBING_2].Width = 7;
     Bmp[Tiles::GUY_CLIMBING_2].Height = 34;
+    Bmp[Tiles::GUY_CLIMBING_2].Name = "GUY_CLIMBING_2";
 
     Bmp[Tiles::GUY_HAMMER_2].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_HAMMER_2].Speed = 4;
@@ -498,6 +622,7 @@ void InitStructs()
     Bmp[Tiles::GUY_HAMMER_2].Width = 7;
     Bmp[Tiles::GUY_HAMMER_2].Height = 34;
     Bmp[Tiles::GUY_HAMMER_2].Sound = Sound::HAMMER;
+    Bmp[Tiles::GUY_HAMMER_2].Name = "GUY_HAMMER_2";
 
     Bmp[Tiles::GUY_ENTER_HOUSE].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_ENTER_HOUSE].Speed = 2;
@@ -507,6 +632,7 @@ void InitStructs()
     Bmp[Tiles::GUY_ENTER_HOUSE].sourceRect.bottom = 0 + 34;
     Bmp[Tiles::GUY_ENTER_HOUSE].Width = 9;
     Bmp[Tiles::GUY_ENTER_HOUSE].Height = 34;
+    Bmp[Tiles::GUY_ENTER_HOUSE].Name = "GUY_ENTER_HOUSE";
 
     Bmp[Tiles::GUY_SLEEP_HOUSE].AnimationPhaseCount = 2;
     Bmp[Tiles::GUY_SLEEP_HOUSE].Speed = 1;
@@ -517,6 +643,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SLEEP_HOUSE].Width = 10;
     Bmp[Tiles::GUY_SLEEP_HOUSE].Height = 34;
     Bmp[Tiles::GUY_SLEEP_HOUSE].Sound = Sound::SNORE;
+    Bmp[Tiles::GUY_SLEEP_HOUSE].Name = "GUY_SLEEP_HOUSE";
 
     Bmp[Tiles::GUY_EXIT_HOUSE].AnimationPhaseCount = 3;
     Bmp[Tiles::GUY_EXIT_HOUSE].Speed = 2;
@@ -526,6 +653,7 @@ void InitStructs()
     Bmp[Tiles::GUY_EXIT_HOUSE].sourceRect.bottom = 0 + 34;
     Bmp[Tiles::GUY_EXIT_HOUSE].Width = 9;
     Bmp[Tiles::GUY_EXIT_HOUSE].Height = 34;
+    Bmp[Tiles::GUY_EXIT_HOUSE].Name = "GUY_EXIT_HOUSE";
 
     Bmp[Tiles::GUY_SET_FIRE].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_SET_FIRE].Speed = 5;
@@ -535,6 +663,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SET_FIRE].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_SET_FIRE].Width = 19;
     Bmp[Tiles::GUY_SET_FIRE].Height = 18;
+    Bmp[Tiles::GUY_SET_FIRE].Name = "GUY_SET_FIRE";
 
     Bmp[Tiles::GUY_LOOK_OUT].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_LOOK_OUT].Speed = 1;
@@ -544,6 +673,7 @@ void InitStructs()
     Bmp[Tiles::GUY_LOOK_OUT].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_LOOK_OUT].Width = 10;
     Bmp[Tiles::GUY_LOOK_OUT].Height = 18;
+    Bmp[Tiles::GUY_LOOK_OUT].Name = "GUY_LOOK_OUT";
 
     Bmp[Tiles::GUY_SHOVEL].AnimationPhaseCount = 10;
     Bmp[Tiles::GUY_SHOVEL].Speed = 3;
@@ -554,6 +684,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SHOVEL].Width = 17;
     Bmp[Tiles::GUY_SHOVEL].Height = 19;
     Bmp[Tiles::GUY_SHOVEL].Sound = Sound::DIG;
+    Bmp[Tiles::GUY_SHOVEL].Name = "GUY_SHOVEL";
 
     Bmp[Tiles::GUY_SHIP].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_SHIP].Speed = 10;
@@ -565,6 +696,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SHIP].Height = 38;
     Bmp[Tiles::GUY_SHIP].Surface = lpDDSBau;
     Bmp[Tiles::GUY_SHIP].Sound = Sound::STORM;
+    Bmp[Tiles::GUY_SHIP].Name = "GUY_SHIP";
 
     Bmp[Tiles::GUY_SHIP_DOWN].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_SHIP_DOWN].Speed = 3;
@@ -576,6 +708,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SHIP_DOWN].Height = 40;
     Bmp[Tiles::GUY_SHIP_DOWN].Surface = lpDDSBau;
     Bmp[Tiles::GUY_SHIP_DOWN].Sound = Sound::SPLAT;
+    Bmp[Tiles::GUY_SHIP_DOWN].Name = "GUY_SHIP_DOWN";
 
     Bmp[Tiles::GUY_SWIM].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_SWIM].Speed = 10;
@@ -586,6 +719,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SWIM].Width = 15;
     Bmp[Tiles::GUY_SWIM].Height = 9;
     Bmp[Tiles::GUY_SWIM].Sound = Sound::SWIM;
+    Bmp[Tiles::GUY_SWIM].Name = "GUY_SWIM";
 
     Bmp[Tiles::GUY_DEAD].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_DEAD].Speed = 1;
@@ -595,6 +729,7 @@ void InitStructs()
     Bmp[Tiles::GUY_DEAD].sourceRect.bottom = 0 + 10;
     Bmp[Tiles::GUY_DEAD].Width = 16;
     Bmp[Tiles::GUY_DEAD].Height = 10;
+    Bmp[Tiles::GUY_DEAD].Name = "GUY_DEAD";
 
     Bmp[Tiles::GUY_BOAT_DEAD].AnimationPhaseCount = 6;
     Bmp[Tiles::GUY_BOAT_DEAD].Speed = 1;
@@ -604,6 +739,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_DEAD].sourceRect.bottom = 0 + 18;
     Bmp[Tiles::GUY_BOAT_DEAD].Width = 26;
     Bmp[Tiles::GUY_BOAT_DEAD].Height = 18;
+    Bmp[Tiles::GUY_BOAT_DEAD].Name = "GUY_BOAT_DEAD";
 
     Bmp[Tiles::GUY_BOAT_WAITING].AnimationPhaseCount = 4;
     Bmp[Tiles::GUY_BOAT_WAITING].Speed = 2;
@@ -613,6 +749,7 @@ void InitStructs()
     Bmp[Tiles::GUY_BOAT_WAITING].sourceRect.bottom = 72 + 18;
     Bmp[Tiles::GUY_BOAT_WAITING].Width = 26;
     Bmp[Tiles::GUY_BOAT_WAITING].Height = 20;
+    Bmp[Tiles::GUY_BOAT_WAITING].Name = "GUY_BOAT_WAITING";
 
     Bmp[Tiles::GUY_SLINGSHOT].AnimationPhaseCount = 5;
     Bmp[Tiles::GUY_SLINGSHOT].Speed = 4;
@@ -622,6 +759,7 @@ void InitStructs()
     Bmp[Tiles::GUY_SLINGSHOT].sourceRect.bottom = 0 + 20;
     Bmp[Tiles::GUY_SLINGSHOT].Width = 23;
     Bmp[Tiles::GUY_SLINGSHOT].Height = 20;
+    Bmp[Tiles::GUY_SLINGSHOT].Name = "GUY_SLINGSHOT";
 
     // Cursor
     for (i = Tiles::CURSOR_ARROW; i <= Tiles::CURSOR_CLOCK; i++) {
@@ -637,6 +775,10 @@ void InitStructs()
         Bmp[i].Width = 18;
         Bmp[i].Height = 18;
     }
+    
+    Bmp[Tiles::CURSOR_ARROW].Name = "CURSOR_ARROW";
+    Bmp[Tiles::CURSOR_CLOCK].Name = "CURSOR_CLOCK";
+    Bmp[Tiles::CURSOR_DIRECTION].Name = "CURSOR_DIRECTION";
 
     // Landschaftsanimationen
     for (i = Tiles::SEA_WAVES; i <= Tiles::FLOODGATE_6; i++) {
@@ -660,6 +802,7 @@ void InitStructs()
     Bmp[Tiles::SEA_WAVES].targetRect.top = 23;
     Bmp[Tiles::SEA_WAVES].targetRect.bottom = Bmp[Tiles::SEA_WAVES].targetRect.top + Bmp[Tiles::SEA_WAVES].Height;
     Bmp[Tiles::SEA_WAVES].Sound = Sound::SURF;
+    Bmp[Tiles::SEA_WAVES].Name = "SEA_WAVES";
 
     Bmp[Tiles::RIVER_1].Width = 34;
     Bmp[Tiles::RIVER_1].Height = 8;
@@ -671,6 +814,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_1].targetRect.right = Bmp[Tiles::RIVER_1].targetRect.left + Bmp[Tiles::RIVER_1].Width;
     Bmp[Tiles::RIVER_1].targetRect.top = 18;
     Bmp[Tiles::RIVER_1].targetRect.bottom = Bmp[Tiles::RIVER_1].targetRect.top + Bmp[Tiles::RIVER_1].Height;
+    Bmp[Tiles::RIVER_1].Name = "RIVER_1";
 
     Bmp[Tiles::RIVER_2].Width = 34;
     Bmp[Tiles::RIVER_2].Height = 8;
@@ -682,6 +826,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_2].targetRect.right = Bmp[Tiles::RIVER_2].targetRect.left + Bmp[Tiles::RIVER_2].Width;
     Bmp[Tiles::RIVER_2].targetRect.top = 19;
     Bmp[Tiles::RIVER_2].targetRect.bottom = Bmp[Tiles::RIVER_2].targetRect.top + Bmp[Tiles::RIVER_2].Height;
+    Bmp[Tiles::RIVER_2].Name = "RIVER_2";
 
     Bmp[Tiles::RIVER_3].Width = 34;
     Bmp[Tiles::RIVER_3].Height = 34;
@@ -693,6 +838,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_3].targetRect.right = Bmp[Tiles::RIVER_3].targetRect.left + Bmp[Tiles::RIVER_3].Width;
     Bmp[Tiles::RIVER_3].targetRect.top = 5;
     Bmp[Tiles::RIVER_3].targetRect.bottom = Bmp[Tiles::RIVER_3].targetRect.top + Bmp[Tiles::RIVER_3].Height;
+    Bmp[Tiles::RIVER_3].Name = "RIVER_3";
 
     Bmp[Tiles::RIVER_4].Width = 34;
     Bmp[Tiles::RIVER_4].Height = 34;
@@ -704,6 +850,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_4].targetRect.right = Bmp[Tiles::RIVER_4].targetRect.left + Bmp[Tiles::RIVER_4].Width;
     Bmp[Tiles::RIVER_4].targetRect.top = 5;
     Bmp[Tiles::RIVER_4].targetRect.bottom = Bmp[Tiles::RIVER_4].targetRect.top + Bmp[Tiles::RIVER_4].Height;
+    Bmp[Tiles::RIVER_4].Name = "RIVER_4";
 
     Bmp[Tiles::RIVER_5].Width = 34;
     Bmp[Tiles::RIVER_5].Height = 18;
@@ -715,6 +862,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_5].targetRect.right = Bmp[Tiles::RIVER_5].targetRect.left + Bmp[Tiles::RIVER_5].Width;
     Bmp[Tiles::RIVER_5].targetRect.top = 21;
     Bmp[Tiles::RIVER_5].targetRect.bottom = Bmp[Tiles::RIVER_5].targetRect.top + Bmp[Tiles::RIVER_5].Height;
+    Bmp[Tiles::RIVER_5].Name = "RIVER_5";
 
     Bmp[Tiles::RIVER_6].Width = 34;
     Bmp[Tiles::RIVER_6].Height = 18;
@@ -726,6 +874,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_6].targetRect.right = Bmp[Tiles::RIVER_6].targetRect.left + Bmp[Tiles::RIVER_6].Width;
     Bmp[Tiles::RIVER_6].targetRect.top = 21;
     Bmp[Tiles::RIVER_6].targetRect.bottom = Bmp[Tiles::RIVER_6].targetRect.top + Bmp[Tiles::RIVER_6].Height;
+    Bmp[Tiles::RIVER_6].Name = "RIVER_6";
 
     Bmp[Tiles::RIVER_7].Width = 18;
     Bmp[Tiles::RIVER_7].Height = 18;
@@ -737,6 +886,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_7].targetRect.right = Bmp[Tiles::RIVER_7].targetRect.left + Bmp[Tiles::RIVER_7].Width;
     Bmp[Tiles::RIVER_7].targetRect.top = 21;
     Bmp[Tiles::RIVER_7].targetRect.bottom = Bmp[Tiles::RIVER_7].targetRect.top + Bmp[Tiles::RIVER_7].Height;
+    Bmp[Tiles::RIVER_7].Name = "RIVER_7";
 
     Bmp[Tiles::RIVER_8].Width = 18;
     Bmp[Tiles::RIVER_8].Height = 18;
@@ -748,6 +898,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_8].targetRect.right = Bmp[Tiles::RIVER_8].targetRect.left + Bmp[Tiles::RIVER_8].Width;
     Bmp[Tiles::RIVER_8].targetRect.top = 21;
     Bmp[Tiles::RIVER_8].targetRect.bottom = Bmp[Tiles::RIVER_8].targetRect.top + Bmp[Tiles::RIVER_8].Height;
+    Bmp[Tiles::RIVER_8].Name = "RIVER_8";
 
     Bmp[Tiles::RIVER_9].Width = 34;
     Bmp[Tiles::RIVER_9].Height = 15;
@@ -759,6 +910,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_9].targetRect.right = Bmp[Tiles::RIVER_9].targetRect.left + Bmp[Tiles::RIVER_9].Width;
     Bmp[Tiles::RIVER_9].targetRect.top = 20;
     Bmp[Tiles::RIVER_9].targetRect.bottom = Bmp[Tiles::RIVER_9].targetRect.top + Bmp[Tiles::RIVER_9].Height;
+    Bmp[Tiles::RIVER_9].Name = "RIVER_9";
 
     Bmp[Tiles::RIVER_10].Width = 34;
     Bmp[Tiles::RIVER_10].Height = 13;
@@ -770,6 +922,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_10].targetRect.right = Bmp[Tiles::RIVER_10].targetRect.left + Bmp[Tiles::RIVER_10].Width;
     Bmp[Tiles::RIVER_10].targetRect.top = 26;
     Bmp[Tiles::RIVER_10].targetRect.bottom = Bmp[Tiles::RIVER_10].targetRect.top + Bmp[Tiles::RIVER_10].Height;
+    Bmp[Tiles::RIVER_10].Name = "RIVER_10";
 
     Bmp[Tiles::RIVER_END_1].Width = 42;
     Bmp[Tiles::RIVER_END_1].Height = 22;
@@ -781,6 +934,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_END_1].targetRect.right = Bmp[Tiles::RIVER_END_1].targetRect.left + Bmp[Tiles::RIVER_END_1].Width;
     Bmp[Tiles::RIVER_END_1].targetRect.top = 17;
     Bmp[Tiles::RIVER_END_1].targetRect.bottom = Bmp[Tiles::RIVER_END_1].targetRect.top + Bmp[Tiles::RIVER_END_1].Height;
+    Bmp[Tiles::RIVER_END_1].Name = "RIVER_END_1";
 
     Bmp[Tiles::RIVER_END_2].Width = 40;
     Bmp[Tiles::RIVER_END_2].Height = 22;
@@ -792,6 +946,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_END_2].targetRect.right = Bmp[Tiles::RIVER_END_2].targetRect.left + Bmp[Tiles::RIVER_END_2].Width;
     Bmp[Tiles::RIVER_END_2].targetRect.top = 17;
     Bmp[Tiles::RIVER_END_2].targetRect.bottom = Bmp[Tiles::RIVER_END_2].targetRect.top + Bmp[Tiles::RIVER_END_2].Height;
+    Bmp[Tiles::RIVER_END_2].Name = "RIVER_END_2";
 
     Bmp[Tiles::RIVER_END_3].Width = 40;
     Bmp[Tiles::RIVER_END_3].Height = 22;
@@ -803,6 +958,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_END_3].targetRect.right = Bmp[Tiles::RIVER_END_3].targetRect.left + Bmp[Tiles::RIVER_END_3].Width;
     Bmp[Tiles::RIVER_END_3].targetRect.top = 21;
     Bmp[Tiles::RIVER_END_3].targetRect.bottom = Bmp[Tiles::RIVER_END_3].targetRect.top + Bmp[Tiles::RIVER_END_3].Height;
+    Bmp[Tiles::RIVER_END_3].Name = "RIVER_END_3";
 
     Bmp[Tiles::RIVER_END_4].Width = 42;
     Bmp[Tiles::RIVER_END_4].Height = 22;
@@ -814,6 +970,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_END_4].targetRect.right = Bmp[Tiles::RIVER_END_4].targetRect.left + Bmp[Tiles::RIVER_END_4].Width;
     Bmp[Tiles::RIVER_END_4].targetRect.top = 21;
     Bmp[Tiles::RIVER_END_4].targetRect.bottom = Bmp[Tiles::RIVER_END_4].targetRect.top + Bmp[Tiles::RIVER_END_4].Height;
+    Bmp[Tiles::RIVER_END_4].Name = "RIVER_END_4";
 
     Bmp[Tiles::RIVER_START_1].Width = 30;
     Bmp[Tiles::RIVER_START_1].Height = 19;
@@ -825,6 +982,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_START_1].targetRect.right = Bmp[Tiles::RIVER_START_1].targetRect.left + Bmp[Tiles::RIVER_START_1].Width;
     Bmp[Tiles::RIVER_START_1].targetRect.top = 19;
     Bmp[Tiles::RIVER_START_1].targetRect.bottom = Bmp[Tiles::RIVER_START_1].targetRect.top + Bmp[Tiles::RIVER_START_1].Height;
+    Bmp[Tiles::RIVER_START_1].Name = "RIVER_START_1";
 
     Bmp[Tiles::RIVER_START_2].Width = 26;
     Bmp[Tiles::RIVER_START_2].Height = 19;
@@ -836,6 +994,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_START_2].targetRect.right = Bmp[Tiles::RIVER_START_2].targetRect.left + Bmp[Tiles::RIVER_START_2].Width;
     Bmp[Tiles::RIVER_START_2].targetRect.top = 20;
     Bmp[Tiles::RIVER_START_2].targetRect.bottom = Bmp[Tiles::RIVER_START_2].targetRect.top + Bmp[Tiles::RIVER_START_2].Height;
+    Bmp[Tiles::RIVER_START_2].Name = "RIVER_START_2";
 
     Bmp[Tiles::RIVER_START_3].Width = 25;
     Bmp[Tiles::RIVER_START_3].Height = 16;
@@ -847,6 +1006,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_START_3].targetRect.right = Bmp[Tiles::RIVER_START_3].targetRect.left + Bmp[Tiles::RIVER_START_3].Width;
     Bmp[Tiles::RIVER_START_3].targetRect.top = 19;
     Bmp[Tiles::RIVER_START_3].targetRect.bottom = Bmp[Tiles::RIVER_START_3].targetRect.top + Bmp[Tiles::RIVER_START_3].Height;
+    Bmp[Tiles::RIVER_START_3].Name = "RIVER_START_3";
 
     Bmp[Tiles::RIVER_START_4].Width = 25;
     Bmp[Tiles::RIVER_START_4].Height = 15;
@@ -858,6 +1018,7 @@ void InitStructs()
     Bmp[Tiles::RIVER_START_4].targetRect.right = Bmp[Tiles::RIVER_START_4].targetRect.left + Bmp[Tiles::RIVER_START_4].Width;
     Bmp[Tiles::RIVER_START_4].targetRect.top = 21;
     Bmp[Tiles::RIVER_START_4].targetRect.bottom = Bmp[Tiles::RIVER_START_4].targetRect.top + Bmp[Tiles::RIVER_START_4].Height;
+    Bmp[Tiles::RIVER_START_4].Name = "RIVER_START_4";
 
     Bmp[Tiles::FLOODGATE_1].Width = 35;
     Bmp[Tiles::FLOODGATE_1].Height = 22;
@@ -869,6 +1030,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_1].targetRect.right = Bmp[Tiles::FLOODGATE_1].targetRect.left + Bmp[Tiles::FLOODGATE_1].Width;
     Bmp[Tiles::FLOODGATE_1].targetRect.top = 17;
     Bmp[Tiles::FLOODGATE_1].targetRect.bottom = Bmp[Tiles::FLOODGATE_1].targetRect.top + Bmp[Tiles::FLOODGATE_1].Height;
+    Bmp[Tiles::FLOODGATE_1].Name = "FLOODGATE_1";
 
     Bmp[Tiles::FLOODGATE_2].Width = 34;
     Bmp[Tiles::FLOODGATE_2].Height = 23;
@@ -880,6 +1042,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_2].targetRect.right = Bmp[Tiles::FLOODGATE_2].targetRect.left + Bmp[Tiles::FLOODGATE_2].Width;
     Bmp[Tiles::FLOODGATE_2].targetRect.top = 16;
     Bmp[Tiles::FLOODGATE_2].targetRect.bottom = Bmp[Tiles::FLOODGATE_2].targetRect.top + Bmp[Tiles::FLOODGATE_2].Height;
+    Bmp[Tiles::FLOODGATE_2].Name = "FLOODGATE_2";
 
     Bmp[Tiles::FLOODGATE_3].Width = 34;
     Bmp[Tiles::FLOODGATE_3].Height = 22;
@@ -891,6 +1054,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_3].targetRect.right = Bmp[Tiles::FLOODGATE_3].targetRect.left + Bmp[Tiles::FLOODGATE_3].Width;
     Bmp[Tiles::FLOODGATE_3].targetRect.top = 17;
     Bmp[Tiles::FLOODGATE_3].targetRect.bottom = Bmp[Tiles::FLOODGATE_3].targetRect.top + Bmp[Tiles::FLOODGATE_3].Height;
+    Bmp[Tiles::FLOODGATE_3].Name = "FLOODGATE_3";
 
     Bmp[Tiles::FLOODGATE_4].Width = 33;
     Bmp[Tiles::FLOODGATE_4].Height = 23;
@@ -902,6 +1066,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_4].targetRect.right = Bmp[Tiles::FLOODGATE_4].targetRect.left + Bmp[Tiles::FLOODGATE_4].Width;
     Bmp[Tiles::FLOODGATE_4].targetRect.top = 16;
     Bmp[Tiles::FLOODGATE_4].targetRect.bottom = Bmp[Tiles::FLOODGATE_4].targetRect.top + Bmp[Tiles::FLOODGATE_4].Height;
+    Bmp[Tiles::FLOODGATE_4].Name = "FLOODGATE_4";
 
     Bmp[Tiles::FLOODGATE_5].Width = 34;
     Bmp[Tiles::FLOODGATE_5].Height = 17;
@@ -913,6 +1078,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_5].targetRect.right = Bmp[Tiles::FLOODGATE_5].targetRect.left + Bmp[Tiles::FLOODGATE_5].Width;
     Bmp[Tiles::FLOODGATE_5].targetRect.top = 20;
     Bmp[Tiles::FLOODGATE_5].targetRect.bottom = Bmp[Tiles::FLOODGATE_5].targetRect.top + Bmp[Tiles::FLOODGATE_5].Height;
+    Bmp[Tiles::FLOODGATE_5].Name = "FLOODGATE_5";
 
     Bmp[Tiles::FLOODGATE_6].Width = 35;
     Bmp[Tiles::FLOODGATE_6].Height = 23;
@@ -924,6 +1090,7 @@ void InitStructs()
     Bmp[Tiles::FLOODGATE_6].targetRect.right = Bmp[Tiles::FLOODGATE_6].targetRect.left + Bmp[Tiles::FLOODGATE_6].Width;
     Bmp[Tiles::FLOODGATE_6].targetRect.top = 16;
     Bmp[Tiles::FLOODGATE_6].targetRect.bottom = Bmp[Tiles::FLOODGATE_6].targetRect.top + Bmp[Tiles::FLOODGATE_6].Height;
+    Bmp[Tiles::FLOODGATE_6].Name = "FLOODGATE_6";
 
     // Bauwerke
     for (i = Tiles::FIELD; i <= Tiles::BONFIRE; i++) {
@@ -945,6 +1112,7 @@ void InitStructs()
     Bmp[Tiles::FIELD].targetRect.top = 15;
     Bmp[Tiles::FIELD].targetRect.bottom = Bmp[Tiles::FIELD].targetRect.top + Bmp[Tiles::FIELD].Height;
     Bmp[Tiles::FIELD].RequiredActionCases = 20;
+    Bmp[Tiles::FIELD].Name = "FIELD";
 
     Bmp[Tiles::TENT].AnimationPhaseCount = 1;
     Bmp[Tiles::TENT].Surface = lpDDSBau;
@@ -958,9 +1126,10 @@ void InitStructs()
     Bmp[Tiles::TENT].targetRect.right = Bmp[Tiles::TENT].targetRect.left + Bmp[Tiles::TENT].Width;
     Bmp[Tiles::TENT].targetRect.top = 9;
     Bmp[Tiles::TENT].targetRect.bottom = Bmp[Tiles::TENT].targetRect.top + Bmp[Tiles::TENT].Height;
-    Bmp[Tiles::TENT].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 5;
-    Bmp[Tiles::TENT].RequiredRawMaterials[Tiles::RAW_LEAF] = 5;
+    Bmp[Tiles::TENT].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 5};
+    Bmp[Tiles::TENT].RequiredMaterials[1] = {Tiles::RAW_LEAF, 5};
     Bmp[Tiles::TENT].RequiredActionCases = 16;
+    Bmp[Tiles::TENT].Name = "TENT";
 
     Bmp[Tiles::BOAT].AnimationPhaseCount = 2;
     Bmp[Tiles::BOAT].Surface = lpDDSBau;
@@ -974,9 +1143,10 @@ void InitStructs()
     Bmp[Tiles::BOAT].targetRect.right = Bmp[Tiles::BOAT].targetRect.left + Bmp[Tiles::BOAT].Width;
     Bmp[Tiles::BOAT].targetRect.top = 20;
     Bmp[Tiles::BOAT].targetRect.bottom = Bmp[Tiles::BOAT].targetRect.top + Bmp[Tiles::BOAT].Height;
-    Bmp[Tiles::BOAT].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 2;
-    Bmp[Tiles::BOAT].RequiredRawMaterials[Tiles::RAW_TREE_TRUNK] = 1;
+    Bmp[Tiles::BOAT].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 2};
+    Bmp[Tiles::BOAT].RequiredMaterials[1] = {Tiles::RAW_TREE_TRUNK, 1};
     Bmp[Tiles::BOAT].RequiredActionCases = 16;
+    Bmp[Tiles::BOAT].Name = "BOAT";
 
     Bmp[Tiles::PIPE].AnimationPhaseCount = 2;
     Bmp[Tiles::PIPE].Surface = lpDDSBau;
@@ -990,8 +1160,9 @@ void InitStructs()
     Bmp[Tiles::PIPE].targetRect.right = Bmp[Tiles::PIPE].targetRect.left + Bmp[Tiles::PIPE].Width;
     Bmp[Tiles::PIPE].targetRect.top = 16;
     Bmp[Tiles::PIPE].targetRect.bottom = Bmp[Tiles::PIPE].targetRect.top + Bmp[Tiles::PIPE].Height;
-    Bmp[Tiles::PIPE].RequiredRawMaterials[Tiles::RAW_TREE_TRUNK] = 1;
+    Bmp[Tiles::PIPE].RequiredMaterials[0] = {Tiles::RAW_TREE_TRUNK, 1};
     Bmp[Tiles::PIPE].RequiredActionCases = 18;
+    Bmp[Tiles::PIPE].Name = "PIPE";
 
     Bmp[Tiles::SOS].AnimationPhaseCount = 1;
     Bmp[Tiles::SOS].Surface = lpDDSBau;
@@ -1005,8 +1176,9 @@ void InitStructs()
     Bmp[Tiles::SOS].targetRect.right = Bmp[Tiles::SOS].targetRect.left + Bmp[Tiles::SOS].Width;
     Bmp[Tiles::SOS].targetRect.top = 20;
     Bmp[Tiles::SOS].targetRect.bottom = Bmp[Tiles::SOS].targetRect.top + Bmp[Tiles::SOS].Height;
-    Bmp[Tiles::SOS].RequiredRawMaterials[Tiles::RAW_STONE] = 10;
+    Bmp[Tiles::SOS].RequiredMaterials[0] = {Tiles::RAW_STONE, 10};
     Bmp[Tiles::SOS].RequiredActionCases = 20;
+    Bmp[Tiles::SOS].Name = "SOS";
 
     Bmp[Tiles::HOUSE_1].AnimationPhaseCount = 1;
     Bmp[Tiles::HOUSE_1].Surface = lpDDSBau;
@@ -1020,9 +1192,10 @@ void InitStructs()
     Bmp[Tiles::HOUSE_1].targetRect.right = Bmp[Tiles::HOUSE_1].targetRect.left + Bmp[Tiles::HOUSE_1].Width;
     Bmp[Tiles::HOUSE_1].targetRect.top = 0;
     Bmp[Tiles::HOUSE_1].targetRect.bottom = Bmp[Tiles::HOUSE_1].targetRect.top + Bmp[Tiles::HOUSE_1].Height;
-    Bmp[Tiles::HOUSE_1].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 4;
+    Bmp[Tiles::HOUSE_1].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 4};
     Bmp[Tiles::HOUSE_1].RequiredActionCases = 19;
     Bmp[Tiles::HOUSE_1].Sound = Sound::FOREST;
+    Bmp[Tiles::HOUSE_1].Name = "HOUSE_1";
 
     Bmp[Tiles::HOUSE_2].AnimationPhaseCount = 1;
     Bmp[Tiles::HOUSE_2].Surface = lpDDSBau;
@@ -1036,10 +1209,11 @@ void InitStructs()
     Bmp[Tiles::HOUSE_2].targetRect.right = Bmp[Tiles::HOUSE_2].targetRect.left + Bmp[Tiles::HOUSE_2].Width;
     Bmp[Tiles::HOUSE_2].targetRect.top = 0;
     Bmp[Tiles::HOUSE_2].targetRect.bottom = Bmp[Tiles::HOUSE_2].targetRect.top + Bmp[Tiles::HOUSE_2].Height;
-    Bmp[Tiles::HOUSE_2].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 3;
-    Bmp[Tiles::HOUSE_2].RequiredRawMaterials[Tiles::RAW_TREE_TRUNK] = 3;
+    Bmp[Tiles::HOUSE_2].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 3};
+    Bmp[Tiles::HOUSE_2].RequiredMaterials[1] = {Tiles::RAW_TREE_TRUNK, 3};
     Bmp[Tiles::HOUSE_2].RequiredActionCases = 21;
     Bmp[Tiles::HOUSE_2].Sound = Sound::FOREST;
+    Bmp[Tiles::HOUSE_2].Name = "HOUSE_2";
 
     Bmp[Tiles::HOUSE_3].AnimationPhaseCount = 1;
     Bmp[Tiles::HOUSE_3].Surface = lpDDSBau;
@@ -1053,11 +1227,12 @@ void InitStructs()
     Bmp[Tiles::HOUSE_3].targetRect.right = Bmp[Tiles::HOUSE_3].targetRect.left + Bmp[Tiles::HOUSE_3].Width;
     Bmp[Tiles::HOUSE_3].targetRect.top = 0;
     Bmp[Tiles::HOUSE_3].targetRect.bottom = Bmp[Tiles::HOUSE_3].targetRect.top + Bmp[Tiles::HOUSE_3].Height;
-    Bmp[Tiles::HOUSE_3].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 4;
-    Bmp[Tiles::HOUSE_3].RequiredRawMaterials[Tiles::RAW_TREE_TRUNK] = 4;
-    Bmp[Tiles::HOUSE_3].RequiredRawMaterials[Tiles::RAW_LEAF] = 5;
+    Bmp[Tiles::HOUSE_3].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 4};
+    Bmp[Tiles::HOUSE_3].RequiredMaterials[1] = {Tiles::RAW_TREE_TRUNK, 4};
+    Bmp[Tiles::HOUSE_3].RequiredMaterials[2] = {Tiles::RAW_LEAF, 5};
     Bmp[Tiles::HOUSE_3].RequiredActionCases = 21;
     Bmp[Tiles::HOUSE_3].Sound = Sound::FOREST;
+    Bmp[Tiles::HOUSE_3].Name = "HOUSE_3";
 
     Bmp[Tiles::BONFIRE].AnimationPhaseCount = 1;
     Bmp[Tiles::BONFIRE].Surface = lpDDSBau;
@@ -1071,9 +1246,10 @@ void InitStructs()
     Bmp[Tiles::BONFIRE].targetRect.right = Bmp[Tiles::BONFIRE].targetRect.left + Bmp[Tiles::BONFIRE].Width;
     Bmp[Tiles::BONFIRE].targetRect.top = 10;
     Bmp[Tiles::BONFIRE].targetRect.bottom = Bmp[Tiles::BONFIRE].targetRect.top + Bmp[Tiles::BONFIRE].Height;
-    Bmp[Tiles::BONFIRE].RequiredRawMaterials[Tiles::RAW_TREE_BRANCH] = 5;
-    Bmp[Tiles::BONFIRE].RequiredRawMaterials[Tiles::RAW_TREE_TRUNK] = 4;
+    Bmp[Tiles::BONFIRE].RequiredMaterials[0] = {Tiles::RAW_TREE_BRANCH, 5};
+    Bmp[Tiles::BONFIRE].RequiredMaterials[1] = {Tiles::RAW_TREE_TRUNK, 4};
     Bmp[Tiles::BONFIRE].RequiredActionCases = 9;
+    Bmp[Tiles::BONFIRE].Name = "BONFIRE";
 
     // Allgemein Bäume
     for (i = Tiles::TREE_1; i <= Tiles::TREE_4; i++) {
@@ -1092,6 +1268,7 @@ void InitStructs()
     Bmp[Tiles::TREE_1].sourceRect.bottom = 26;
     Bmp[Tiles::TREE_1].Width = static_cast<short>(Bmp[Tiles::TREE_1].sourceRect.right - Bmp[Tiles::TREE_1].sourceRect.left);
     Bmp[Tiles::TREE_1].Height = static_cast<short>(Bmp[Tiles::TREE_1].sourceRect.bottom - Bmp[Tiles::TREE_1].sourceRect.top);
+    Bmp[Tiles::TREE_1].Name = "TREE_1";
 
     // Baum2
     Bmp[Tiles::TREE_2].sourceRect.left = 21;
@@ -1100,6 +1277,7 @@ void InitStructs()
     Bmp[Tiles::TREE_2].sourceRect.bottom = 26;
     Bmp[Tiles::TREE_2].Width = static_cast<short>(Bmp[Tiles::TREE_2].sourceRect.right - Bmp[Tiles::TREE_2].sourceRect.left);
     Bmp[Tiles::TREE_2].Height = static_cast<short>(Bmp[Tiles::TREE_2].sourceRect.bottom - Bmp[Tiles::TREE_2].sourceRect.top);
+    Bmp[Tiles::TREE_2].Name = "TREE_2";
 
     // Baum3
     Bmp[Tiles::TREE_3].sourceRect.left = 42;
@@ -1108,6 +1286,7 @@ void InitStructs()
     Bmp[Tiles::TREE_3].sourceRect.bottom = 27;
     Bmp[Tiles::TREE_3].Width = static_cast<short>(Bmp[Tiles::TREE_3].sourceRect.right - Bmp[Tiles::TREE_3].sourceRect.left);
     Bmp[Tiles::TREE_3].Height = static_cast<short>(Bmp[Tiles::TREE_3].sourceRect.bottom - Bmp[Tiles::TREE_3].sourceRect.top);
+    Bmp[Tiles::TREE_3].Name = "TREE_3";
 
     // Baum4
     Bmp[Tiles::TREE_4].sourceRect.left = 64;
@@ -1116,6 +1295,7 @@ void InitStructs()
     Bmp[Tiles::TREE_4].sourceRect.bottom = 16;
     Bmp[Tiles::TREE_4].Width = static_cast<short>(Bmp[Tiles::TREE_4].sourceRect.right - Bmp[Tiles::TREE_4].sourceRect.left);
     Bmp[Tiles::TREE_4].Height = static_cast<short>(Bmp[Tiles::TREE_4].sourceRect.bottom - Bmp[Tiles::TREE_4].sourceRect.top);
+    Bmp[Tiles::TREE_4].Name = "TREE_4";
 
     // Baumgroß
     Bmp[Tiles::TREE_BIG].sourceRect.left = 238;
@@ -1130,6 +1310,7 @@ void InitStructs()
     Bmp[Tiles::TREE_BIG].AnimationPhase = 0;
     Bmp[Tiles::TREE_BIG].Surface = lpDDSBaum;
     Bmp[Tiles::TREE_BIG].Sound = Sound::FOREST;
+    Bmp[Tiles::TREE_BIG].Name = "TREE_BIG";
 
     // Feuer
     Bmp[Tiles::FIRE].AnimationPhaseCount = 3;
@@ -1148,6 +1329,7 @@ void InitStructs()
     Bmp[Tiles::FIRE].Speed = 6;
     Bmp[Tiles::FIRE].AnimationPhase = 0;
     Bmp[Tiles::FIRE].Sound = Sound::FIRE;
+    Bmp[Tiles::FIRE].Name = "FIRE";
 
     // WRACK
     Bmp[Tiles::WRECK_1].AnimationPhaseCount = 3;
@@ -1165,6 +1347,7 @@ void InitStructs()
     Bmp[Tiles::WRECK_1].IsAnimationRunning = true;
     Bmp[Tiles::WRECK_1].Speed = 5;
     Bmp[Tiles::WRECK_1].AnimationPhase = 0;
+    Bmp[Tiles::WRECK_1].Name = "WRECK_1";
 
     // WRACK2
     Bmp[Tiles::WRECK_2].AnimationPhaseCount = 3;
@@ -1182,6 +1365,7 @@ void InitStructs()
     Bmp[Tiles::WRECK_2].IsAnimationRunning = true;
     Bmp[Tiles::WRECK_2].Speed = 5;
     Bmp[Tiles::WRECK_2].AnimationPhase = 0;
+    Bmp[Tiles::WRECK_2].Name = "WRECK_2";
 
     // Früchte
     // Busch
@@ -1196,6 +1380,7 @@ void InitStructs()
     Bmp[Tiles::BUSH].Speed = 0;
     Bmp[Tiles::BUSH].AnimationPhase = 0;
     Bmp[Tiles::BUSH].Surface = lpDDSBaum;
+    Bmp[Tiles::BUSH].Name = "BUSH";
 
     // Buttons
 
@@ -1219,6 +1404,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_GRID].Width = static_cast<short>(Bmp[Tiles::BUTTON_GRID].sourceRect.right - Bmp[Tiles::BUTTON_GRID].sourceRect.left);
     Bmp[Tiles::BUTTON_GRID].Height = static_cast<short>(Bmp[Tiles::BUTTON_GRID].sourceRect.bottom - Bmp[Tiles::BUTTON_GRID].sourceRect.top);
     Bmp[Tiles::BUTTON_GRID].AnimationPhaseCount = 2;
+    Bmp[Tiles::BUTTON_GRID].Name = "BUTTON_GRID";
 
     // BUTTANIMATION
     Bmp[Tiles::BUTTON_ANIMATION].sourceRect.left = 0;
@@ -1232,6 +1418,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_ANIMATION].Width = static_cast<short>(Bmp[Tiles::BUTTON_ANIMATION].sourceRect.right - Bmp[Tiles::BUTTON_ANIMATION].sourceRect.left);
     Bmp[Tiles::BUTTON_ANIMATION].Height = static_cast<short>(Bmp[Tiles::BUTTON_ANIMATION].sourceRect.bottom - Bmp[Tiles::BUTTON_ANIMATION].sourceRect.top);
     Bmp[Tiles::BUTTON_ANIMATION].AnimationPhaseCount = 2;
+    Bmp[Tiles::BUTTON_ANIMATION].Name = "BUTTON_ANIMATION";
 
     // BUTTBEENDEN
     Bmp[Tiles::BUTTON_END].sourceRect.left = 0;
@@ -1246,6 +1433,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_END].Height = static_cast<short>(Bmp[Tiles::BUTTON_END].sourceRect.bottom - Bmp[Tiles::BUTTON_END].sourceRect.top);
     Bmp[Tiles::BUTTON_END].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_END].Speed = 4;
+    Bmp[Tiles::BUTTON_END].Name = "BUTTON_END";
 
     // BUTTNEU
     Bmp[Tiles::BUTTON_NEW].sourceRect.left = 0;
@@ -1260,6 +1448,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_NEW].Height = static_cast<short>(Bmp[Tiles::BUTTON_NEW].sourceRect.bottom - Bmp[Tiles::BUTTON_NEW].sourceRect.top);
     Bmp[Tiles::BUTTON_NEW].AnimationPhaseCount = 2;
     Bmp[Tiles::BUTTON_NEW].Speed = 3;
+    Bmp[Tiles::BUTTON_NEW].Name = "BUTTON_NEW";
 
 
     // BUTTTAGNEU
@@ -1275,6 +1464,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_NEW_DAY].Height = static_cast<short>(Bmp[Tiles::BUTTON_NEW_DAY].sourceRect.bottom - Bmp[Tiles::BUTTON_NEW_DAY].sourceRect.top);
     Bmp[Tiles::BUTTON_NEW_DAY].AnimationPhaseCount = 2;
     Bmp[Tiles::BUTTON_NEW_DAY].Speed = 2;
+    Bmp[Tiles::BUTTON_NEW_DAY].Name = "BUTTON_NEW_DAY";
 
     // BUTTSOUND
     Bmp[Tiles::BUTTON_SOUND].sourceRect.left = 0;
@@ -1288,6 +1478,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_SOUND].Width = static_cast<short>(Bmp[Tiles::BUTTON_SOUND].sourceRect.right - Bmp[Tiles::BUTTON_SOUND].sourceRect.left);
     Bmp[Tiles::BUTTON_SOUND].Height = static_cast<short>(Bmp[Tiles::BUTTON_SOUND].sourceRect.bottom - Bmp[Tiles::BUTTON_SOUND].sourceRect.top);
     Bmp[Tiles::BUTTON_SOUND].AnimationPhaseCount = 2;
+    Bmp[Tiles::BUTTON_SOUND].Name = "BUTTON_SOUND";
 
     // ButtAktion
     Bmp[Tiles::BUTTON_ACTION].sourceRect.left = 28;
@@ -1302,6 +1493,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_ACTION].Height = static_cast<short>(Bmp[Tiles::BUTTON_ACTION].sourceRect.bottom - Bmp[Tiles::BUTTON_ACTION].sourceRect.top);
     Bmp[Tiles::BUTTON_ACTION].AnimationPhaseCount = 3;
     Bmp[Tiles::BUTTON_ACTION].Speed = 6;
+    Bmp[Tiles::BUTTON_ACTION].Name = "BUTTON_ACTION";
 
     // BUTTBAUEN
     Bmp[Tiles::BUTTON_CONSTRUCT].sourceRect.left = 203;
@@ -1316,6 +1508,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_CONSTRUCT].Height = static_cast<short>(Bmp[Tiles::BUTTON_CONSTRUCT].sourceRect.bottom - Bmp[Tiles::BUTTON_CONSTRUCT].sourceRect.top);
     Bmp[Tiles::BUTTON_CONSTRUCT].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_CONSTRUCT].Speed = 5;
+    Bmp[Tiles::BUTTON_CONSTRUCT].Name = "BUTTON_CONSTRUCT";
 
 
     // BUTTINVENTAR
@@ -1331,6 +1524,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_INVENTORY].Height = static_cast<short>(Bmp[Tiles::BUTTON_INVENTORY].sourceRect.bottom - Bmp[Tiles::BUTTON_INVENTORY].sourceRect.top);
     Bmp[Tiles::BUTTON_INVENTORY].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_INVENTORY].Speed = 4;
+    Bmp[Tiles::BUTTON_INVENTORY].Name = "BUTTON_INVENTORY";
 
     // BUTTWEITER
     Bmp[Tiles::BUTTON_CONTINUE].sourceRect.left = 343;
@@ -1346,6 +1540,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_CONTINUE].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_CONTINUE].Speed = 4;
     Bmp[Tiles::BUTTON_CONTINUE].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_CONTINUE].Name = "BUTTON_CONTINUE";
 
     // BUTTSTOP
     Bmp[Tiles::BUTTON_STOP].sourceRect.left = 378;
@@ -1361,6 +1556,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_STOP].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_STOP].Speed = 4;
     Bmp[Tiles::BUTTON_STOP].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_STOP].Name = "BUTTON_STOP";
 
     // BUTTABLEGEN
     Bmp[Tiles::BUTTON_LAY_DOWN].sourceRect.left = 483;
@@ -1376,6 +1572,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_LAY_DOWN].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_LAY_DOWN].Speed = 3;
     Bmp[Tiles::BUTTON_STOP].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_LAY_DOWN].Name = "BUTTON_LAY_DOWN";
 
     // BUTTSUCHEN
     Bmp[Tiles::BUTTON_SEARCH].sourceRect.left = 63;
@@ -1390,6 +1587,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_SEARCH].Height = static_cast<short>(Bmp[Tiles::BUTTON_SEARCH].sourceRect.bottom - Bmp[Tiles::BUTTON_SEARCH].sourceRect.top);
     Bmp[Tiles::BUTTON_SEARCH].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_SEARCH].Speed = 4;
+    Bmp[Tiles::BUTTON_SEARCH].Name = "BUTTON_SEARCH";
 
     // BUTTESSEN
     Bmp[Tiles::BUTTON_EAT].sourceRect.left = 133;
@@ -1404,6 +1602,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_EAT].Height = static_cast<short>(Bmp[Tiles::BUTTON_EAT].sourceRect.bottom - Bmp[Tiles::BUTTON_EAT].sourceRect.top);
     Bmp[Tiles::BUTTON_EAT].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_EAT].Speed = 4;
+    Bmp[Tiles::BUTTON_EAT].Name = "BUTTON_EAT";
 
     // BUTTSCHLAFEN
     Bmp[Tiles::BUTTON_SLEEP].sourceRect.left = 308;
@@ -1418,6 +1617,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_SLEEP].Height = static_cast<short>(Bmp[Tiles::BUTTON_SLEEP].sourceRect.bottom - Bmp[Tiles::BUTTON_SLEEP].sourceRect.top);
     Bmp[Tiles::BUTTON_SLEEP].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_SLEEP].Speed = 3;
+    Bmp[Tiles::BUTTON_SLEEP].Name = "BUTTON_SLEEP";
 
     // BUTTFAELLEN
     Bmp[Tiles::BUTTON_CHOP].sourceRect.left = 98;
@@ -1433,6 +1633,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_CHOP].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_CHOP].Speed = 4;
     Bmp[Tiles::BUTTON_CHOP].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_CHOP].Name = "BUTTON_CHOP";
 
     // BUTTANGELN
     Bmp[Tiles::BUTTON_FISH].sourceRect.left = 413;
@@ -1448,6 +1649,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_FISH].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_FISH].Speed = 3;
     Bmp[Tiles::BUTTON_FISH].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_FISH].Name = "BUTTON_FISH";
 
     // BUTTANZUENDEN
     Bmp[Tiles::BUTTON_IGNITE].sourceRect.left = 28;
@@ -1463,6 +1665,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_IGNITE].AnimationPhaseCount = 3;
     Bmp[Tiles::BUTTON_IGNITE].Speed = 4;
     Bmp[Tiles::BUTTON_IGNITE].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_IGNITE].Name = "BUTTON_IGNITE";
 
     // BUTTAUSSCHAU
     Bmp[Tiles::BUTTON_LOOK_OUT].sourceRect.left = 63;
@@ -1478,6 +1681,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_LOOK_OUT].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_LOOK_OUT].Speed = 3;
     Bmp[Tiles::BUTTON_LOOK_OUT].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_LOOK_OUT].Name = "BUTTON_LOOK_OUT";
 
     // BUTTSCHATZKARTE
     Bmp[Tiles::BUTTON_TREASUREMAP].sourceRect.left = 98;
@@ -1493,6 +1697,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_TREASUREMAP].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_TREASUREMAP].Speed = 3;
     Bmp[Tiles::BUTTON_TREASUREMAP].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_TREASUREMAP].Name = "BUTTON_TREASUREMAP";
 
     // BUTTSCHATZ
     Bmp[Tiles::BUTTON_TREASURE].sourceRect.left = 133;
@@ -1508,6 +1713,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_TREASURE].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_TREASURE].Speed = 3;
     Bmp[Tiles::BUTTON_TREASURE].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_TREASURE].Name = "BUTTON_TREASURE";
 
     // BUTTSCHLEUDER
     Bmp[Tiles::BUTTON_SLINGSHOT].sourceRect.left = 168;
@@ -1523,6 +1729,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_SLINGSHOT].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_SLINGSHOT].Speed = 3;
     Bmp[Tiles::BUTTON_SLINGSHOT].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_SLINGSHOT].Name = "BUTTON_SLINGSHOT";
 
     // BUTTFELD
     Bmp[Tiles::BUTTON_FARM].sourceRect.left = 238;
@@ -1538,6 +1745,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_FARM].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_FARM].Speed = 3;
     Bmp[Tiles::BUTTON_FARM].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_FARM].Name = "BUTTON_FARM";
 
     // BUTTZELT
     Bmp[Tiles::BUTTON_TENT].sourceRect.left = 273;
@@ -1553,6 +1761,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_TENT].AnimationPhaseCount = 3;
     Bmp[Tiles::BUTTON_TENT].Speed = 3;
     Bmp[Tiles::BUTTON_TENT].AnimationPhase = 0;
+    Bmp[Tiles::BUTTON_TENT].Name = "BUTTON_TENT";
 
     // BUTTBOOT
     Bmp[Tiles::BUTTON_BOAT].sourceRect.left = 448;
@@ -1568,6 +1777,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_BOAT].AnimationPhaseCount = 3;
     Bmp[Tiles::BUTTON_BOAT].Speed = 3;
     Bmp[Tiles::BUTTON_BOAT].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_BOAT].Name = "BUTTON_BOAT";
 
     // BUTTROHR
     Bmp[Tiles::BUTTON_PIPE].sourceRect.left = 518;
@@ -1583,6 +1793,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_PIPE].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_PIPE].Speed = 2;
     Bmp[Tiles::BUTTON_PIPE].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_PIPE].Name = "BUTTON_PIPE";
 
     // BUTTSOS
     Bmp[Tiles::BUTTON_SOS].sourceRect.left = 588;
@@ -1597,6 +1808,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_SOS].Height = static_cast<short>(Bmp[Tiles::BUTTON_SOS].sourceRect.bottom - Bmp[Tiles::BUTTON_SOS].sourceRect.top);
     Bmp[Tiles::BUTTON_SOS].AnimationPhaseCount = 3;
     Bmp[Tiles::BUTTON_SOS].Speed = 2;
+    Bmp[Tiles::BUTTON_SOS].Name = "BUTTON_SOS";
 
     // BUTTHAUS1
     Bmp[Tiles::BUTTON_HOUSE_1].sourceRect.left = 623;
@@ -1612,6 +1824,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_HOUSE_1].AnimationPhaseCount = 5;
     Bmp[Tiles::BUTTON_HOUSE_1].Speed = 3;
     Bmp[Tiles::BUTTON_HOUSE_1].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_HOUSE_1].Name = "BUTTON_HOUSE_1";
 
     // BUTTHAUS2
     Bmp[Tiles::BUTTON_HOUSE_2].sourceRect.left = 658;
@@ -1627,6 +1840,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_HOUSE_2].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_HOUSE_2].Speed = 3;
     Bmp[Tiles::BUTTON_HOUSE_2].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_HOUSE_2].Name = "BUTTON_HOUSE_2";
 
     // BUTTHAUS3
     Bmp[Tiles::BUTTON_HOUSE_3].sourceRect.left = 693;
@@ -1642,6 +1856,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_HOUSE_3].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_HOUSE_3].Speed = 3;
     Bmp[Tiles::BUTTON_HOUSE_3].AnimationPhase = -1;
+    Bmp[Tiles::BUTTON_HOUSE_3].Name = "BUTTON_HOUSE_3";
 
     // BUTTFEUERST
     Bmp[Tiles::BUTTON_FIRE].sourceRect.left = 728;
@@ -1656,6 +1871,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_FIRE].Height = static_cast<short>(Bmp[Tiles::BUTTON_FIRE].sourceRect.bottom - Bmp[Tiles::BUTTON_FIRE].sourceRect.top);
     Bmp[Tiles::BUTTON_FIRE].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_FIRE].Speed = 3;
+    Bmp[Tiles::BUTTON_FIRE].Name = "BUTTON_FIRE";
 
     // BUTTFRAGEZ
     Bmp[Tiles::BUTTON_QUESTION].sourceRect.left = 203;
@@ -1670,6 +1886,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_QUESTION].Height = static_cast<short>(Bmp[Tiles::BUTTON_QUESTION].sourceRect.bottom - Bmp[Tiles::BUTTON_QUESTION].sourceRect.top);
     Bmp[Tiles::BUTTON_QUESTION].AnimationPhaseCount = 1;
     Bmp[Tiles::BUTTON_QUESTION].Speed = 0;
+    Bmp[Tiles::BUTTON_QUESTION].Name = "BUTTON_QUESTION";
 
     // BUTTDESTROY
     Bmp[Tiles::BUTTON_DESTROY].sourceRect.left = 553;
@@ -1684,6 +1901,7 @@ void InitStructs()
     Bmp[Tiles::BUTTON_DESTROY].Height = static_cast<short>(Bmp[Tiles::BUTTON_DESTROY].sourceRect.bottom - Bmp[Tiles::BUTTON_DESTROY].sourceRect.top);
     Bmp[Tiles::BUTTON_DESTROY].AnimationPhaseCount = 4;
     Bmp[Tiles::BUTTON_DESTROY].Speed = 5;
+    Bmp[Tiles::BUTTON_DESTROY].Name = "BUTTON_DESTROY";
 
     // SpzAni
     for (i = Tiles::TREE_DOWN_1; i <= Tiles::TREE_DOWN_4; i++) {
@@ -1705,6 +1923,7 @@ void InitStructs()
     Bmp[Tiles::TREE_DOWN_1].sourceRect.bottom = 27;
     Bmp[Tiles::TREE_DOWN_1].Width = static_cast<short>(Bmp[Tiles::TREE_DOWN_1].sourceRect.right - Bmp[Tiles::TREE_DOWN_1].sourceRect.left);
     Bmp[Tiles::TREE_DOWN_1].Height = static_cast<short>(Bmp[Tiles::TREE_DOWN_1].sourceRect.bottom - Bmp[Tiles::TREE_DOWN_1].sourceRect.top);
+    Bmp[Tiles::TREE_DOWN_1].Name = "TREE_DOWN_1";
 
     // BAUM2DOWN
     Bmp[Tiles::TREE_DOWN_2].sourceRect.left = 136;
@@ -1713,6 +1932,7 @@ void InitStructs()
     Bmp[Tiles::TREE_DOWN_2].sourceRect.bottom = 27;
     Bmp[Tiles::TREE_DOWN_2].Width = static_cast<short>(Bmp[Tiles::TREE_DOWN_2].sourceRect.right - Bmp[Tiles::TREE_DOWN_2].sourceRect.left);
     Bmp[Tiles::TREE_DOWN_2].Height = static_cast<short>(Bmp[Tiles::TREE_DOWN_2].sourceRect.bottom - Bmp[Tiles::TREE_DOWN_2].sourceRect.top);
+    Bmp[Tiles::TREE_DOWN_2].Name = "TREE_DOWN_2";
 
     // BAUM3DOWN
     Bmp[Tiles::TREE_DOWN_3].sourceRect.left = 172;
@@ -1721,6 +1941,7 @@ void InitStructs()
     Bmp[Tiles::TREE_DOWN_3].sourceRect.bottom = 28;
     Bmp[Tiles::TREE_DOWN_3].Width = static_cast<short>(Bmp[Tiles::TREE_DOWN_3].sourceRect.right - Bmp[Tiles::TREE_DOWN_3].sourceRect.left);
     Bmp[Tiles::TREE_DOWN_3].Height = static_cast<short>(Bmp[Tiles::TREE_DOWN_3].sourceRect.bottom - Bmp[Tiles::TREE_DOWN_3].sourceRect.top);
+    Bmp[Tiles::TREE_DOWN_3].Name = "TREE_DOWN_3";
 
     // BAUM4DOWN
     Bmp[Tiles::TREE_DOWN_4].sourceRect.left = 206;
@@ -1729,6 +1950,7 @@ void InitStructs()
     Bmp[Tiles::TREE_DOWN_4].sourceRect.bottom = 17;
     Bmp[Tiles::TREE_DOWN_4].Width = static_cast<short>(Bmp[Tiles::TREE_DOWN_4].sourceRect.right - Bmp[Tiles::TREE_DOWN_4].sourceRect.left);
     Bmp[Tiles::TREE_DOWN_4].Height = static_cast<short>(Bmp[Tiles::TREE_DOWN_4].sourceRect.bottom - Bmp[Tiles::TREE_DOWN_4].sourceRect.top);
+    Bmp[Tiles::TREE_DOWN_4].Name = "TREE_DOWN_4";
 
     // Sonstiges
 
@@ -1745,6 +1967,7 @@ void InitStructs()
     Bmp[Tiles::COLUMN_1].Width = static_cast<short>(Bmp[Tiles::COLUMN_1].sourceRect.right - Bmp[Tiles::COLUMN_1].sourceRect.left);
     Bmp[Tiles::COLUMN_1].Height = static_cast<short>(Bmp[Tiles::COLUMN_1].sourceRect.bottom - Bmp[Tiles::COLUMN_1].sourceRect.top);
     Bmp[Tiles::COLUMN_1].Surface = lpDDSPanel;
+    Bmp[Tiles::COLUMN_1].Name = "COLUMN_1";
 
     // Säule2
     Bmp[Tiles::COLUMN_2].AnimationPhaseCount = 1;
@@ -1759,6 +1982,7 @@ void InitStructs()
     Bmp[Tiles::COLUMN_2].Width = static_cast<short>(Bmp[Tiles::COLUMN_2].sourceRect.right - Bmp[Tiles::COLUMN_2].sourceRect.left);
     Bmp[Tiles::COLUMN_2].Height = static_cast<short>(Bmp[Tiles::COLUMN_2].sourceRect.bottom - Bmp[Tiles::COLUMN_2].sourceRect.top);
     Bmp[Tiles::COLUMN_2].Surface = lpDDSPanel;
+    Bmp[Tiles::COLUMN_2].Name = "COLUMN_2";
 
     // Säule3
     Bmp[Tiles::COLUMN_3].AnimationPhaseCount = 1;
@@ -1773,6 +1997,7 @@ void InitStructs()
     Bmp[Tiles::COLUMN_3].Width = static_cast<short>(Bmp[Tiles::COLUMN_3].sourceRect.right - Bmp[Tiles::COLUMN_3].sourceRect.left);
     Bmp[Tiles::COLUMN_3].Height = static_cast<short>(Bmp[Tiles::COLUMN_3].sourceRect.bottom - Bmp[Tiles::COLUMN_3].sourceRect.top);
     Bmp[Tiles::COLUMN_3].Surface = lpDDSPanel;
+    Bmp[Tiles::COLUMN_3].Name = "COLUMN_3";
 
     // Rohstoffe
     for (i = Tiles::RAW_TREE_BRANCH; i <= Tiles::RAW_SLINGSHOT; i++) {
@@ -1785,6 +2010,21 @@ void InitStructs()
         Bmp[i].Height = static_cast<short>(Bmp[i].sourceRect.bottom - Bmp[i].sourceRect.top);
         Bmp[i].Surface = lpDDSInventar;
     }
+
+    Bmp[Tiles::RAW_TREE_BRANCH].Name = "RAW_TREE_BRANCH";
+    Bmp[Tiles::RAW_TREE_TRUNK].Name = "RAW_TREE_TRUNK";
+    Bmp[Tiles::RAW_STONE].Name = "RAW_STONE";
+    Bmp[Tiles::RAW_AXE].Name = "RAW_AXE";
+    Bmp[Tiles::RAW_LEAF].Name = "RAW_LEAF";
+    Bmp[Tiles::RAW_HOE].Name = "RAW_HOE";
+    Bmp[Tiles::RAW_LIANA].Name = "RAW_LIANA";
+    Bmp[Tiles::RAW_FISHING_POLE].Name = "RAW_FISHING_POLE";
+    Bmp[Tiles::RAW_HAMMER].Name = "RAW_HAMMER";
+    Bmp[Tiles::RAW_TELESCOPE].Name = "RAW_TELESCOPE";
+    Bmp[Tiles::RAW_MATCH].Name = "RAW_MATCH";
+    Bmp[Tiles::RAW_SHOVEL].Name = "RAW_SHOVEL";
+    Bmp[Tiles::RAW_MAP].Name = "RAW_MAP";
+    Bmp[Tiles::RAW_SLINGSHOT].Name = "RAW_SLINGSHOT";
 
     // RohAst
     Bmp[Tiles::RAW_TREE_BRANCH].targetRect.left = rcPanel.left + 34;
@@ -1856,6 +2096,7 @@ void InitStructs()
     Bmp[Tiles::RAW_SLINGSHOT].targetRect.top = rcPanel.top + 340;
     Bmp[Tiles::RAW_SLINGSHOT].targetRect.right = Bmp[Tiles::RAW_SLINGSHOT].targetRect.left + 16;
     Bmp[Tiles::RAW_SLINGSHOT].targetRect.bottom = Bmp[Tiles::RAW_SLINGSHOT].targetRect.top + 15;
+    Bmp[Tiles::RAW_TREE_BRANCH].Name = "RAW_TREE_BRANCH";
 
     // ROEMISCH1
     Bmp[Tiles::ROEMISCH1].AnimationPhaseCount = 1;
@@ -1870,6 +2111,7 @@ void InitStructs()
     Bmp[Tiles::ROEMISCH1].Width = static_cast<short>(Bmp[Tiles::ROEMISCH1].sourceRect.right - Bmp[Tiles::ROEMISCH1].sourceRect.left);
     Bmp[Tiles::ROEMISCH1].Height = static_cast<short>(Bmp[Tiles::ROEMISCH1].sourceRect.bottom - Bmp[Tiles::ROEMISCH1].sourceRect.top);
     Bmp[Tiles::ROEMISCH1].Surface = lpDDSInventar;
+    Bmp[Tiles::ROEMISCH1].Name = "ROEMISCH1";
 
     // ROEMISCH2
     Bmp[Tiles::ROEMISCH2].AnimationPhaseCount = 1;
@@ -1884,6 +2126,7 @@ void InitStructs()
     Bmp[Tiles::ROEMISCH2].Width = static_cast<short>(Bmp[Tiles::ROEMISCH2].sourceRect.right - Bmp[Tiles::ROEMISCH2].sourceRect.left);
     Bmp[Tiles::ROEMISCH2].Height = static_cast<short>(Bmp[Tiles::ROEMISCH2].sourceRect.bottom - Bmp[Tiles::ROEMISCH2].sourceRect.top);
     Bmp[Tiles::ROEMISCH2].Surface = lpDDSInventar;
+    Bmp[Tiles::ROEMISCH2].Name = "ROEMISCH2";
 
     // INVPAPIER
     Bmp[Tiles::INVENTORY_PAPER].AnimationPhaseCount = 1;
@@ -1898,6 +2141,7 @@ void InitStructs()
     Bmp[Tiles::INVENTORY_PAPER].Width = static_cast<short>(Bmp[Tiles::INVENTORY_PAPER].sourceRect.right - Bmp[Tiles::INVENTORY_PAPER].sourceRect.left);
     Bmp[Tiles::INVENTORY_PAPER].Height = static_cast<short>(Bmp[Tiles::INVENTORY_PAPER].sourceRect.bottom - Bmp[Tiles::INVENTORY_PAPER].sourceRect.top);
     Bmp[Tiles::INVENTORY_PAPER].Surface = lpDDSInventar;
+    Bmp[Tiles::INVENTORY_PAPER].Name = "INVENTORY_PAPER";
 
     // RING
     Bmp[Tiles::RING].AnimationPhaseCount = 1;
@@ -1912,16 +2156,18 @@ void InitStructs()
     Bmp[Tiles::RING].Width = static_cast<short>(Bmp[Tiles::RING].sourceRect.right - Bmp[Tiles::RING].sourceRect.left);
     Bmp[Tiles::RING].Height = static_cast<short>(Bmp[Tiles::RING].sourceRect.bottom - Bmp[Tiles::RING].sourceRect.top);
     Bmp[Tiles::RING].Surface = lpDDSPanel;
+    Bmp[Tiles::RING].Name = "RING";
 
     // KREUZ
     Bmp[Tiles::CROSS].AnimationPhaseCount = 1;
     Bmp[Tiles::CROSS].sourceRect.left = 205;
-    Bmp[Tiles::CROSS].sourceRect.top = 380;
+    Bmp[Tiles::CROSS].sourceRect.top = 360;
     Bmp[Tiles::CROSS].sourceRect.right = Bmp[Tiles::CROSS].sourceRect.left + 40;
     Bmp[Tiles::CROSS].sourceRect.bottom = Bmp[Tiles::CROSS].sourceRect.top + 22;
     Bmp[Tiles::CROSS].Width = static_cast<short>(Bmp[Tiles::CROSS].sourceRect.right - Bmp[Tiles::CROSS].sourceRect.left);
     Bmp[Tiles::CROSS].Height = static_cast<short>(Bmp[Tiles::CROSS].sourceRect.bottom - Bmp[Tiles::CROSS].sourceRect.top);
     Bmp[Tiles::CROSS].Surface = lpDDSPanel;
+    Bmp[Tiles::CROSS].Name = "CROSS";
 
     // JA
     Bmp[Tiles::YES].AnimationPhaseCount = 1;
@@ -1932,6 +2178,7 @@ void InitStructs()
     Bmp[Tiles::YES].Width = static_cast<short>(Bmp[Tiles::YES].sourceRect.right - Bmp[Tiles::YES].sourceRect.left);
     Bmp[Tiles::YES].Height = static_cast<short>(Bmp[Tiles::YES].sourceRect.bottom - Bmp[Tiles::YES].sourceRect.top);
     Bmp[Tiles::YES].Surface = lpDDSPaper;
+    Bmp[Tiles::YES].Name = "YES";
 
     // NEIN
     Bmp[Tiles::NO].AnimationPhaseCount = 1;
@@ -1942,6 +2189,7 @@ void InitStructs()
     Bmp[Tiles::NO].Width = static_cast<short>(Bmp[Tiles::NO].sourceRect.right - Bmp[Tiles::NO].sourceRect.left);
     Bmp[Tiles::NO].Height = static_cast<short>(Bmp[Tiles::NO].sourceRect.bottom - Bmp[Tiles::NO].sourceRect.top);
     Bmp[Tiles::NO].Surface = lpDDSPaper;
+    Bmp[Tiles::NO].Name = "NO";
 
     // Sonne
     Bmp[Tiles::SUN].AnimationPhaseCount = 1;
@@ -1956,6 +2204,7 @@ void InitStructs()
     Bmp[Tiles::SUN].Width = static_cast<short>(Bmp[Tiles::SUN].sourceRect.right - Bmp[Tiles::SUN].sourceRect.left);
     Bmp[Tiles::SUN].Height = static_cast<short>(Bmp[Tiles::SUN].sourceRect.bottom - Bmp[Tiles::SUN].sourceRect.top);
     Bmp[Tiles::SUN].Surface = lpDDSPanel;
+    Bmp[Tiles::SUN].Name = "SUN";
 
     // PROGRAMMIERUNG
     Bmp[Tiles::PROGRAMMING].AnimationPhaseCount = 1;
@@ -1970,6 +2219,7 @@ void InitStructs()
     Bmp[Tiles::PROGRAMMING].targetRect.right = Bmp[Tiles::PROGRAMMING].targetRect.left + Bmp[Tiles::PROGRAMMING].Width;
     Bmp[Tiles::PROGRAMMING].targetRect.bottom = Bmp[Tiles::PROGRAMMING].targetRect.top + Bmp[Tiles::PROGRAMMING].Height;
     Bmp[Tiles::PROGRAMMING].Surface = lpDDSCredits;
+    Bmp[Tiles::PROGRAMMING].Name = "PROGRAMMING";
 
     // DIRKPLATE
     Bmp[Tiles::DIRK_PLATE].AnimationPhaseCount = 1;
@@ -1984,6 +2234,7 @@ void InitStructs()
     Bmp[Tiles::DIRK_PLATE].targetRect.right = Bmp[Tiles::DIRK_PLATE].targetRect.left + Bmp[Tiles::DIRK_PLATE].Width;
     Bmp[Tiles::DIRK_PLATE].targetRect.bottom = Bmp[Tiles::DIRK_PLATE].targetRect.top + Bmp[Tiles::DIRK_PLATE].Height;
     Bmp[Tiles::DIRK_PLATE].Surface = lpDDSCredits;
+    Bmp[Tiles::DIRK_PLATE].Name = "DIRK_PLATE";
 
     // MATTHIAS
     Bmp[Tiles::MATTHIAS].AnimationPhaseCount = 1;
@@ -1998,6 +2249,7 @@ void InitStructs()
     Bmp[Tiles::MATTHIAS].targetRect.right = Bmp[Tiles::MATTHIAS].targetRect.left + Bmp[Tiles::MATTHIAS].Width;
     Bmp[Tiles::MATTHIAS].targetRect.bottom = Bmp[Tiles::MATTHIAS].targetRect.top + Bmp[Tiles::MATTHIAS].Height;
     Bmp[Tiles::MATTHIAS].Surface = lpDDSCredits;
+    Bmp[Tiles::MATTHIAS].Name = "MATTHIAS";
 
     // TESTSPIELER
     Bmp[Tiles::TEST_PLAYER].AnimationPhaseCount = 1;
@@ -2012,6 +2264,7 @@ void InitStructs()
     Bmp[Tiles::TEST_PLAYER].targetRect.right = Bmp[Tiles::TEST_PLAYER].targetRect.left + Bmp[Tiles::TEST_PLAYER].Width;
     Bmp[Tiles::TEST_PLAYER].targetRect.bottom = Bmp[Tiles::TEST_PLAYER].targetRect.top + Bmp[Tiles::TEST_PLAYER].Height;
     Bmp[Tiles::TEST_PLAYER].Surface = lpDDSCredits;
+    Bmp[Tiles::TEST_PLAYER].Name = "TEST_PLAYER";
 
     // TOBIAS
     Bmp[Tiles::TOBIAS].AnimationPhaseCount = 1;
@@ -2026,6 +2279,7 @@ void InitStructs()
     Bmp[Tiles::TOBIAS].targetRect.right = Bmp[Tiles::TOBIAS].targetRect.left + Bmp[Tiles::TOBIAS].Width;
     Bmp[Tiles::TOBIAS].targetRect.bottom = Bmp[Tiles::TOBIAS].targetRect.top + Bmp[Tiles::TOBIAS].Height;
     Bmp[Tiles::TOBIAS].Surface = lpDDSCredits;
+    Bmp[Tiles::TOBIAS].Name = "TOBIAS";
 
     // SIGRID
     Bmp[Tiles::SIGRID].AnimationPhaseCount = 1;
@@ -2040,6 +2294,7 @@ void InitStructs()
     Bmp[Tiles::SIGRID].targetRect.right = Bmp[Tiles::SIGRID].targetRect.left + Bmp[Tiles::SIGRID].Width;
     Bmp[Tiles::SIGRID].targetRect.bottom = Bmp[Tiles::SIGRID].targetRect.top + Bmp[Tiles::SIGRID].Height;
     Bmp[Tiles::SIGRID].Surface = lpDDSCredits;
+    Bmp[Tiles::SIGRID].Name = "SIGRID";
 
     // PATHFINDING
     Bmp[Tiles::PATHFINDING].AnimationPhaseCount = 1;
@@ -2054,6 +2309,7 @@ void InitStructs()
     Bmp[Tiles::PATHFINDING].targetRect.right = Bmp[Tiles::PATHFINDING].targetRect.left + Bmp[Tiles::PATHFINDING].Width;
     Bmp[Tiles::PATHFINDING].targetRect.bottom = Bmp[Tiles::PATHFINDING].targetRect.top + Bmp[Tiles::PATHFINDING].Height;
     Bmp[Tiles::PATHFINDING].Surface = lpDDSCredits;
+    Bmp[Tiles::PATHFINDING].Name = "PATHFINDING";
 
     // JOHN
     Bmp[Tiles::JOHN].AnimationPhaseCount = 1;
@@ -2068,6 +2324,7 @@ void InitStructs()
     Bmp[Tiles::JOHN].targetRect.right = Bmp[Tiles::JOHN].targetRect.left + Bmp[Tiles::JOHN].Width;
     Bmp[Tiles::JOHN].targetRect.bottom = Bmp[Tiles::JOHN].targetRect.top + Bmp[Tiles::JOHN].Height;
     Bmp[Tiles::JOHN].Surface = lpDDSCredits;
+    Bmp[Tiles::JOHN].Name = "JOHN";
 
     // HEIKO
     Bmp[Tiles::HEIKO].AnimationPhaseCount = 1;
@@ -2082,6 +2339,7 @@ void InitStructs()
     Bmp[Tiles::HEIKO].targetRect.right = Bmp[Tiles::HEIKO].targetRect.left + Bmp[Tiles::HEIKO].Width;
     Bmp[Tiles::HEIKO].targetRect.bottom = Bmp[Tiles::HEIKO].targetRect.top + Bmp[Tiles::HEIKO].Height;
     Bmp[Tiles::HEIKO].Surface = lpDDSCredits;
+    Bmp[Tiles::HEIKO].Name = "HEIKO";
 
     // GISELA
     Bmp[Tiles::GISELA].AnimationPhaseCount = 1;
@@ -2096,6 +2354,7 @@ void InitStructs()
     Bmp[Tiles::GISELA].targetRect.right = Bmp[Tiles::GISELA].targetRect.left + Bmp[Tiles::GISELA].Width;
     Bmp[Tiles::GISELA].targetRect.bottom = Bmp[Tiles::GISELA].targetRect.top + Bmp[Tiles::GISELA].Height;
     Bmp[Tiles::GISELA].Surface = lpDDSCredits;
+    Bmp[Tiles::GISELA].Name = "GISELA";
 
     // WEITEREHILFE
     Bmp[Tiles::FURTHER_HELP].AnimationPhaseCount = 1;
@@ -2110,6 +2369,7 @@ void InitStructs()
     Bmp[Tiles::FURTHER_HELP].targetRect.right = Bmp[Tiles::FURTHER_HELP].targetRect.left + Bmp[Tiles::FURTHER_HELP].Width;
     Bmp[Tiles::FURTHER_HELP].targetRect.bottom = Bmp[Tiles::FURTHER_HELP].targetRect.top + Bmp[Tiles::FURTHER_HELP].Height;
     Bmp[Tiles::FURTHER_HELP].Surface = lpDDSCredits;
+    Bmp[Tiles::FURTHER_HELP].Name = "FURTHER_HELP";
 
     // DPSOFTWARE
     Bmp[Tiles::DPSOFTWARE].AnimationPhaseCount = 1;
@@ -2124,6 +2384,7 @@ void InitStructs()
     Bmp[Tiles::DPSOFTWARE].targetRect.right = Bmp[Tiles::DPSOFTWARE].targetRect.left + Bmp[Tiles::DPSOFTWARE].Width;
     Bmp[Tiles::DPSOFTWARE].targetRect.bottom = Bmp[Tiles::DPSOFTWARE].targetRect.top + Bmp[Tiles::DPSOFTWARE].Height;
     Bmp[Tiles::DPSOFTWARE].Surface = lpDDSCredits;
+    Bmp[Tiles::DPSOFTWARE].Name = "DPSOFTWARE";
 
     // SCHWARZ
     Bmp[Tiles::SCHWARZ].AnimationPhaseCount = 1;
@@ -2138,6 +2399,7 @@ void InitStructs()
     Bmp[Tiles::SCHWARZ].targetRect.right = Bmp[Tiles::SCHWARZ].targetRect.left + Bmp[Tiles::SCHWARZ].Width;
     Bmp[Tiles::SCHWARZ].targetRect.bottom = Bmp[Tiles::SCHWARZ].targetRect.top + Bmp[Tiles::SCHWARZ].Height;
     Bmp[Tiles::SCHWARZ].Surface = lpDDSCredits;
+    Bmp[Tiles::SCHWARZ].Name = "SCHWARZ";
 
     // SOUNDS
     Bmp[Tiles::SOUNDS].AnimationPhaseCount = 1;
@@ -2152,6 +2414,7 @@ void InitStructs()
     Bmp[Tiles::SOUNDS].targetRect.right = Bmp[Tiles::SOUNDS].targetRect.left + Bmp[Tiles::SOUNDS].Width;
     Bmp[Tiles::SOUNDS].targetRect.bottom = Bmp[Tiles::SOUNDS].targetRect.top + Bmp[Tiles::SOUNDS].Height;
     Bmp[Tiles::SOUNDS].Surface = lpDDSCredits;
+    Bmp[Tiles::SOUNDS].Name = "SOUNDS";
 
     // MUSIK
     Bmp[Tiles::MUSIC].AnimationPhaseCount = 1;
@@ -2166,6 +2429,7 @@ void InitStructs()
     Bmp[Tiles::MUSIC].targetRect.right = Bmp[Tiles::MUSIC].targetRect.left + Bmp[Tiles::MUSIC].Width;
     Bmp[Tiles::MUSIC].targetRect.bottom = Bmp[Tiles::MUSIC].targetRect.top + Bmp[Tiles::MUSIC].Height;
     Bmp[Tiles::MUSIC].Surface = lpDDSCredits;
+    Bmp[Tiles::MUSIC].Name = "MUSIC";
 
     for (i = 0; i < 10; i++)
         for (k = 0; k < 10; k++) {
@@ -2246,6 +2510,9 @@ void InitStructs()
     SchatzPos.x = -1;
     SchatzPos.y = -1;
     SchatzGef = false;
+
+    // WriteFontInfo();
+    // WriteAssetInfo();
 }
 
 void InitWaves()
@@ -2390,7 +2657,7 @@ void NewGame(bool neu)
 
         // Guy Position
         Guy.Pos.x = 1;
-        Guy.Pos.y = MAX_TILESY / 2;
+        Guy.Pos.y = MAX_TILES_Y / 2;
         Guy.ScreenPosition.x =
             (Landscape[Guy.Pos.x][Guy.Pos.y].xScreen + CornerCoord[Landscape[Guy.Pos.x][Guy.Pos.y].Type][0].x +
              Landscape[Guy.Pos.x][Guy.Pos.y].xScreen + CornerCoord[Landscape[Guy.Pos.x][Guy.Pos.y].Type][2].x) / 2;
@@ -2427,23 +2694,26 @@ void NewGame(bool neu)
     rcRectdes.bottom = MAX_SCREEN_Y;
 
     bool Anitmp = LAnimation;
-    bool Entdeckttmp[MAX_TILES_X][MAX_TILESY];
+    bool Entdeckttmp[MAX_TILES_X][MAX_TILES_Y];
 
     LAnimation = false;
 
     // Schatzvergraben und Schatzkarte malen
-    for (y = 0; y < MAX_TILESY; y++)
+    for (y = 0; y < MAX_TILES_Y; y++) {
         for (x = 0; x < MAX_TILES_X; x++) {
             Entdeckttmp[x][y] = Landscape[x][y].Discovered;
             Landscape[x][y].Discovered = true;
         }
+    }
 
     World::Generate(); // Einmal vor dem Schatz schon entdeckt malen
     World::Treasure();
 
-    for (y = 0; y < MAX_TILESY; y++) for (x = 0; x < MAX_TILES_X; x++) {
+    for (y = 0; y < MAX_TILES_Y; y++) {
+        for (x = 0; x < MAX_TILES_X; x++) {
             Landscape[x][y].Discovered = Entdeckttmp[x][y];
         }
+    }
 
     World::UpdateDiscovered();
     LAnimation = Anitmp;

@@ -1,4 +1,4 @@
-#include <filesystem>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
     // Get names
     const std::string inFilepath = argv[1];
-    const std::string inFilename = std::filesystem::path(inFilepath).filename().string();
+    const std::string inFilename = std::experimental::filesystem::path(inFilepath).filename().string();
     if (inFilename.empty()) {
         std::cerr << "Passed invalid input file path " << inFilepath << std::endl;
         return 1;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     hStream << "#endif//__cplusplus" << std::endl;
     hStream << "const unsigned char " << resname << "_data[];" << std::endl << std::endl;
 
-    hStream << "static const unsigned long long " << resname << "_size = " << std::filesystem::file_size(inFilepath) << "ull;" << std::endl;
+    hStream << "static const unsigned long long " << resname << "_size = " << std::experimental::filesystem::file_size(inFilepath) << "ull;" << std::endl;
 
     // Generate .c
     cStream << "// Automatically generated from " << inFilename << std::endl << std::endl;

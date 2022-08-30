@@ -47,7 +47,7 @@ sf::Texture *loadTexture(const void *data, const size_t size, const sf::Color &m
         fprintf(stderr, "Failed to load bmp\n");
         return nullptr;
     }
-    printf("loda image: %d %d\n", image.getSize().x, image.getSize().y);
+    printf("load image: %d %d\n", image.getSize().x, image.getSize().y);
 
     image.createMaskFromColor(mask);
 
@@ -89,7 +89,7 @@ void LimitScroll()
 
 Coordinate GetTile(short PosX, short PosY)
 {
-    for (short y = 0; y < MAX_TILESY; y++) {
+    for (short y = 0; y < MAX_TILES_Y; y++) {
         for (short x = 0; x < MAX_TILES_X; x++) {
             // Die in Betracht kommenden Kacheln rausfinden
             if ((PosX > Landscape[x][y].xScreen) && (PosX < Landscape[x][y].xScreen + TILE_SIZE_X) &&
@@ -168,7 +168,12 @@ void BlitToScreen(sf::Texture *from)
 
 void BlitToLandscape(sf::Texture *from)
 {
-    sf::IntRect srcrect(rcRectsrc.left, rcRectsrc.top, rcRectsrc.right - rcRectsrc.left, rcRectsrc.bottom - rcRectsrc.top);
+    sf::IntRect srcrect;
+    srcrect.left = rcRectsrc.left;
+    srcrect.top = rcRectsrc.top;
+    srcrect.width = rcRectsrc.right - rcRectsrc.left;
+    srcrect.height = rcRectsrc.bottom - rcRectsrc.top;
+
     assert(srcrect.width > 0 && srcrect.height > 0);
     if (srcrect.width <= 0 || srcrect.height <= 0) {
         return;
@@ -203,6 +208,8 @@ RGBSTRUCT GetPixel(short x, short y, sf::Image *img)
 //    DWORD color = pixels[y * pitch + x * 2];
 
     // TODO: more efficient
+    RGBSTRUCT rgbStruct;
+
     if (x < 0 || y < 0 || x >= int(img->getSize().x) || y >= int(img->getSize().y)) {
         rgbStruct.r = 0;
         return{};
@@ -210,7 +217,6 @@ RGBSTRUCT GetPixel(short x, short y, sf::Image *img)
     if (!img) {
         return{};
     }
-    RGBSTRUCT rgbStruct;
 
     sf::Color c = img->getPixel(x, y);
     rgbStruct.r = c.r;
@@ -220,40 +226,67 @@ RGBSTRUCT GetPixel(short x, short y, sf::Image *img)
     return rgbStruct;
 }
 
-void DrawPicture(short x, short y, short i, RECT target, bool Reverse, short Fruit)
+void DrawPicture(short x, short y, short bitmapIndex, RECT target, bool Reverse, short Phase)
 {
-    short Phase;
-
-    if (Fruit == -1) {
-        Phase = Bmp[i].AnimationPhase;
-    } else {
-        Phase = Fruit;
+    if (Phase == -1) {
+        Phase = Bmp[bitmapIndex].AnimationPhase;
     }
 
-    rcRectsrc = Bmp[i].sourceRect;
-    if (i == Tiles::TENT) {
-        printf("tent: %d, phase: %d, tent: %d\n", i, Phase, Tiles::TENT);
+    rcRectsrc = Bmp[bitmapIndex].sourceRect;
+    if (bitmapIndex == Tiles::FIELD)
+    {
+        printf("field: %d, phase: %d, tent: %d\n", bitmapIndex, Phase, Tiles::TENT);
+    }
+    if (bitmapIndex == Tiles::TENT) {
+        // printf("tent: %d, phase: %d, tent: %d\n", bitmapIndex, Phase, Tiles::TENT);
     }
 
 
     if (!Reverse) {
-        rcRectsrc.top += Phase * (Bmp[i].Height);
+        rcRectsrc.top += Phase * (Bmp[bitmapIndex].Height);
     } else {
-        rcRectsrc.top = Bmp[i].sourceRect.top + (Bmp[i].AnimationPhaseCount - 1) * Bmp[i].Height - Phase * Bmp[i].Height;
+        rcRectsrc.top = Bmp[bitmapIndex].sourceRect.top + (Bmp[bitmapIndex].AnimationPhaseCount - 1) *
+                            Bmp[bitmapIndex].Height - Phase * Bmp[bitmapIndex].Height;
     }
 
-    rcRectsrc.bottom = rcRectsrc.top + (Bmp[i].Height);
+    rcRectsrc.bottom = rcRectsrc.top + (Bmp[bitmapIndex].Height);
     rcRectdes.left = x;
     rcRectdes.top = y;
-    rcRectdes.right = x + (Bmp[i].Width);
-    rcRectdes.bottom = y + (Bmp[i].Height);
+    rcRectdes.right = x + (Bmp[bitmapIndex].Width);
+    rcRectdes.bottom = y + (Bmp[bitmapIndex].Height);
     Math::CalcRect(target);
-    BlitToScreen(Bmp[i].Surface);
+    BlitToScreen(Bmp[bitmapIndex].Surface);
+#if 0
+    if (x < 0 || y < 0)
+        assert(0);
+#endif
+    // printf("DrawPicture: {x: %d, y: %d}\n", x, y);
+}
+
+int IsInvisble(SCAPE tile, Coordinate camera)
+{
+    int leftBorder = Camera.x + rcPlayingSurface.left - TILE_SIZE_X;
+    int rightBorder = Camera.x + rcPlayingSurface.right + TILE_SIZE_X;
+    int topBorder = Camera.y + rcPlayingSurface.top - TILE_SIZE_Y;
+    int bottomBorder = Camera.y + rcPlayingSurface.bottom + TILE_SIZE_Y;
+  
+    int isInView = ((tile.xScreen > leftBorder) &&
+        (tile.xScreen < rightBorder) &&
+        (tile.yScreen > topBorder) &&
+        (tile.yScreen < bottomBorder));
+    
+    int result = (
+        (!isInView) ||
+        ((!tile.Discovered) ||
+        (tile.Object == -1) && (!tile.Marked))
+    );
+    
+    return result;
 }
 
 void DrawObjects()
 {
-    for (short y = 0; y < MAX_TILESY; y++) {
+    for (short y = 0; y < MAX_TILES_Y; y++) {
         for (short x = 0; x < MAX_TILES_X; x++) {
             bool drawGuy = false;
 
@@ -263,16 +296,12 @@ void DrawObjects()
 
             // Filter out the invisible tiles (or unaffected)
 
-            if (!((Landscape[x][y].xScreen > Camera.x + rcPlayingSurface.left - TILE_SIZE_X) &&
-                    (Landscape[x][y].xScreen < Camera.x + rcPlayingSurface.right + TILE_SIZE_X) &&
-                    (Landscape[x][y].yScreen > Camera.y + rcPlayingSurface.top - TILE_SIZE_Y) &&
-                    (Landscape[x][y].yScreen < Camera.y + rcPlayingSurface.bottom + TILE_SIZE_Y) &&
-                    (Landscape[x][y].Discovered) &&
-                    ((Landscape[x][y].Marked) || (Landscape[x][y].Object != -1) || (drawGuy)))) {
+            if (IsInvisble(Landscape[x][y], Camera) && !drawGuy) {
                 continue;
             }
 
             if (Landscape[x][y].Marked) { // Paint the frames around the marked tiles
+#if 1
                 rcRectsrc.left = TILE_SIZE_X * Landscape[x][y].Type;
                 rcRectsrc.right = TILE_SIZE_X * Landscape[x][y].Type + TILE_SIZE_X;
                 rcRectsrc.top = 2 * TILE_SIZE_Y;
@@ -282,7 +311,8 @@ void DrawObjects()
                 rcRectdes.top = Landscape[x][y].yScreen - Camera.y;
                 rcRectdes.bottom = rcRectdes.top + TILE_SIZE_Y;
                 Math::CalcRect(rcPlayingSurface);
-                BlitToScreen(lpDDSMisc);
+                BlitToScreen(lpDDSTiles);
+#endif
             }
 
             // paint landscape animations (and field)
@@ -407,7 +437,7 @@ void DrawPanel()
     rcRectsrc.left = 0;
     rcRectsrc.top = 0;
     rcRectsrc.right = 2 * MAX_TILES_X;
-    rcRectsrc.bottom = 2 * MAX_TILESY;
+    rcRectsrc.bottom = 2 * MAX_TILES_Y;
     rcRectdes.left = rcKarte.left;
     rcRectdes.top = rcKarte.top;
     rcRectdes.right = rcKarte.right;
@@ -427,7 +457,7 @@ void DrawPanel()
     rcRectsrc.right = 205 + 65;
     rcRectsrc.bottom = 0 + 65;
     rcRectdes.left = rcKarte.left + (Camera.x + 2 * Camera.y) / (TILE_SIZE_X / 2) - MAX_TILES_X - 2;
-    rcRectdes.top = rcKarte.top + (2 * Camera.y - Camera.x) / (TILE_SIZE_X / 2) + MAX_TILESY - 21 - 2;
+    rcRectdes.top = rcKarte.top + (2 * Camera.y - Camera.x) / (TILE_SIZE_X / 2) + MAX_TILES_Y - 21 - 2;
     rcRectdes.right = rcRectdes.left + 65;
     rcRectdes.bottom = rcRectdes.top + 65;
     Math::CalcRect(rcKarte);
@@ -702,34 +732,35 @@ void DrawString(const std::string &string, short x, short y, short Art)
     // Alle Zeichen durchgehen
     for (std::size_t index = 0; index < string.size(); index++) {
         // Korrekte indexNummer ermitteln
-        short cindex = string[index] - ' ';
-
-        if ((string[index] >= ' ') && (string[index] <= '/')) {
+        const char c = string[index];
+        short cindex = c - ' ';
+        
+        if ((c >= ' ') && (c <= '/')) {
             rcRectsrc.left = cindex * Width;
             rcRectsrc.top = 0;
         }
 
-        if ((string[index] >= '0') && (string[index] <= '?')) {
+        if ((c >= '0') && (c <= '?')) {
             rcRectsrc.left = (cindex - 16) * Width;
             rcRectsrc.top = Height;
         }
 
-        if ((string[index] >= '@') && (string[index] <= 'O')) {
+        if ((c >= '@') && (c <= 'O')) {
             rcRectsrc.left = (cindex - 16 * 2) * Width;
             rcRectsrc.top = 2 * Height;
         }
 
-        if ((string[index] >= 'P') && (string[index] <= '_')) {
+        if ((c >= 'P') && (c <= '_')) {
             rcRectsrc.left = (cindex - 16 * 3) * Width;
             rcRectsrc.top = 3 * Height;
         }
 
-        if ((string[index] > '_') && (string[index] <= 'o')) {
+        if ((c > '_') && (c <= 'o')) {
             rcRectsrc.left = (cindex - 16 * 4) * Width;
             rcRectsrc.top = 4 * Height;
         }
 
-        if ((string[index] >= 'p') && (string[index] <= '~')) {
+        if ((c >= 'p') && (c <= '~')) {
             rcRectsrc.left = (cindex - 16 * 5) * Width;
             rcRectsrc.top = 5 * Height;
         }
@@ -794,7 +825,12 @@ short DrawText(const int TEXT, short Bereich, short Art)
 
         if ((Posnext != nullptr) && (Posnext2 != nullptr) && (Posnext2 <= Posnext)) {
             char scratch = *(Posnext2 + 1);
-
+            
+            if (Posx + BWidth * ((Posnext - Text) - Pos) > TextBereich[Bereich].textRect.right) {
+                Posx = static_cast<short>(TextBereich[Bereich].textRect.left) - BWidth;
+                Posy += BHeight + 3;
+            }
+            
             switch (scratch) {
             case 'a':
                 Anzahl = std::sprintf(StdString2, " %d", Tag);
@@ -847,13 +883,12 @@ short DrawText(const int TEXT, short Bereich, short Art)
         if (Posnext == nullptr) {
             Posnext = strchr(Text + Pos + 1, strend);
         }
-
-        strncpy(StdString, Text + Pos, (Posnext - Text) - Pos);
-
         if (Posx + BWidth * ((Posnext - Text) - Pos) > TextBereich[Bereich].textRect.right) {
             Posx = static_cast<short>(TextBereich[Bereich].textRect.left) - BWidth;
             Posy += BHeight + 3;
         }
+        
+        strncpy(StdString, Text + Pos, (Posnext - Text) - Pos);
 
         StdString[(Posnext - Text) - Pos] = static_cast<char>(0);
         DrawString(StdString, Posx, Posy, Art);
@@ -1074,7 +1109,7 @@ void ShowCredits()
         rcRectdes.right = rcRectdes.left + rcRectsrc.right * 10;
         rcRectdes.bottom = rcRectdes.top + rcRectsrc.bottom * 10;
 
-        BlitToScreen(lpDDSBack);
+        // BlitToScreen(lpDDSBack);
 
         rcRectsrc.left = 100;
         rcRectsrc.top = 2;
@@ -1086,7 +1121,7 @@ void ShowCredits()
         rcRectdes.right = Bmp[CreditsNum].Width + 2;
         rcRectdes.bottom = Bmp[CreditsNum].Height + 2;
 
-        BlitToScreen(lpDDSBack);
+        // BlitToScreen(lpDDSBack);
     }
 
     // Flippen

@@ -49,20 +49,21 @@ extern TextArea TextBereich[TEXTANZ];
 extern Coordinate Camera, // aktueller Kartenausschnitt
        MousePosition, //     "    Mauskoordinaten
        RouteDestination, RouteStart, // Koordinaten des Starts und des Endes der Route
-       Route[MAX_TILES_X * MAX_TILESY], // Liste der Routenpunkte
-       RouteKoor[2 * MAX_TILES_X * MAX_TILESY], // Liste der Routenkoordinaten
+       Route[MAX_TILES_X * MAX_TILES_Y], // Liste der Routenpunkte
+       RouteKoor[2 * MAX_TILES_X * MAX_TILES_Y], // Liste der Routenkoordinaten
        SchatzPos; // Hier ist der Schatz vergraben
+extern const RequiredMateral nullMaterial;
 
 extern GUY Guy;
 extern BMP Bmp[SPRITE_COUNT];
 extern WAV Wav[25]; // Sound::COUNT;
 extern CREDITS CreditsList[10][10]; // Namenabfolge im Abspann
-extern SCAPE Landscape[MAX_TILES_X][MAX_TILESY];
+extern SCAPE Landscape[MAX_TILES_X][MAX_TILES_Y];
 
 // DirectDraw
 extern sf::Texture *screenTexture; // DirectDraw primary surface
 extern sf::Texture *lpDDSBack; // DirectDraw back surface
-extern sf::Texture *lpDDSMisc; // DirectDraw Bilder surface
+extern sf::Texture *lpDDSTiles; // DirectDraw Bilder surface
 extern sf::Texture *lpDDSPanel; // DirectDraw Panel surface
 extern sf::Texture *lpDDSGuyAni; // DirectDraw GuyAni surface
 extern sf::Texture *lpDDSAnimation; // DirectDraw Animation surface

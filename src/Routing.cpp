@@ -3,8 +3,8 @@
 #include "Math.hpp"
 
 namespace Routing {
-int LenMap[MAX_TILES_X][MAX_TILESY];
-Coordinate SaveRoute[MAX_TILES_X * MAX_TILESY]; // Zum zwischenspeichern der Route
+int LenMap[MAX_TILES_X][MAX_TILES_Y];
+Coordinate SaveRoute[MAX_TILES_X * MAX_TILES_Y]; // Zum zwischenspeichern der Route
 Coordinate NewPos; // Nur innerhalb des Pathfindings benutzt
 
 void MarkRoute(bool Mark)
@@ -53,14 +53,14 @@ bool FindTheWay()
 {
     short Dir;
 
-    Coordinate Plist[MAX_TILES_X * MAX_TILESY]; // Besuchte Punkte merken
-    short Llist[MAX_TILES_X * MAX_TILESY]; // Länge vom Punkt zum Ziel
+    Coordinate Plist[MAX_TILES_X * MAX_TILES_Y]; // Besuchte Punkte merken
+    short Llist[MAX_TILES_X * MAX_TILES_Y]; // Länge vom Punkt zum Ziel
 
     Coordinate ShPos{0, 0};
     Coordinate BestLine{0, 0};
     Coordinate ShortKoor{0, 0};
 
-    for (short AI = 0; AI < MAX_TILESY; AI++)
+    for (short AI = 0; AI < MAX_TILES_Y; AI++)
         for (short BI = 0; BI < MAX_TILES_X; BI++) {
             LenMap[AI][BI] = 65535;
             Llist[AI * BI] = 0;

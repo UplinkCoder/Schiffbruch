@@ -3,6 +3,12 @@
 #include "headers.hpp"
 #include "extern.hpp"
 
+#define TERRAIN_DRY   0
+#define TERRAIN_WATER 1
+#define TERRAIN_SAND  2
+#define TERRAIN_SWAMP 3
+#define TERRAIN_WET   4
+
 namespace World {
 void AddTime(short h, short m); // Adds hours and minutes to the time of day
 void AddResource(short Art, float Anzahl); // Adds water, etc.

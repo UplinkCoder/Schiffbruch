@@ -12,7 +12,7 @@
 
 namespace World {
 RiverRun Rivers[NUMBER_OF_RIVERS][MAX_RIVER_LENGTH];
-
+const static RequiredMateral nullMaterial = {0, 0};
 void RawMaterialsDescriptionString(short x, short y, short Objekt)
 {
     char TmpString[1024];
@@ -20,41 +20,38 @@ void RawMaterialsDescriptionString(short x, short y, short Objekt)
     RohString[0] = char(0);
     bool keinRohstoff = true;
 
-    if (Objekt == -1) {
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            if (Landscape[x][y].RequiredRawMaterials[i] != 0) {
-                keinRohstoff = false;
-            }
-        }
+    RequiredMateral* requiredMaterials;
+    
+
+    if (Objekt == -1) {        
+        requiredMaterials = Landscape[x][y].RequiredMaterials;
     } else {
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            if (Bmp[Objekt].RequiredRawMaterials[i] != 0) {
-                keinRohstoff = false;
-            }
+        requiredMaterials = Bmp[Objekt].RequiredMaterials;
+    }
+
+    for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+        if (requiredMaterials[i].Amount != 0) {
+            keinRohstoff = false;
+            break;
         }
     }
+
 
     if (keinRohstoff) {
         return;
     }
 
     strcat(RohString, " ->");
-
-    for (short tile = 0; tile < SPRITE_COUNT; tile++) {
-        if (Objekt == -1) {
-            if (Landscape[x][y].RequiredRawMaterials[tile] == 0) {
-                continue;
-            }
-        } else {
-            if (Bmp[Objekt].RequiredRawMaterials[tile] == 0) {
-                continue;
-            }
-        }
+    
+    for (short matIdx = 0; matIdx < MAX_REQUIRED_MATERIALS; matIdx++) {
+        RequiredMateral mat = requiredMaterials[matIdx];
+        if (mat.Amount == 0)
+            continue;
 
         strcat(RohString, " ");
 
         const char *name = "";
-        switch (tile) {
+        switch (mat.Material) {
         case Tiles::RAW_TREE_BRANCH:
             name = GetLanguageString(AST);
             break;
@@ -80,9 +77,7 @@ void RawMaterialsDescriptionString(short x, short y, short Objekt)
         strcat(RohString, "=");
 
         if (Objekt == -1) {
-            std::sprintf(TmpString, "%d", Landscape[x][y].RequiredRawMaterials[tile]);
-        } else {
-            std::sprintf(TmpString, "%d", Bmp[Objekt].RequiredRawMaterials[tile]);
+            std::sprintf(TmpString, "%d", mat.Amount);
         }
 
         strcat(RohString, TmpString);
@@ -99,7 +94,7 @@ void AddTime(short h, short m)
         Hours++;
     }
 
-    for (short y = 0; y < MAX_TILESY; y++)
+    for (short y = 0; y < MAX_TILES_Y; y++)
         for (short x = 0; x < MAX_TILES_X; x++) {
             // Feuer nach einer bestimmten Zeit ausgehen lassen
             if (Landscape[x][y].Object == Tiles::FIRE) {
@@ -181,9 +176,9 @@ void Generate()
     rcRectdes.left = 0;
     rcRectdes.top = 0;
     rcRectdes.right = 2 * MAX_TILES_X;
-    rcRectdes.bottom = 2 * MAX_TILESY;
+    rcRectdes.bottom = 2 * MAX_TILES_Y;
     sf::Image newContent;
-    newContent.create(MAX_TILES_X * 2, MAX_TILESY * 2, sf::Color(247, 222, 191));
+    newContent.create(MAX_TILES_X * 2, MAX_TILES_Y * 2, sf::Color(247, 222, 191));
 //    ddbltfx.dwFillColor = Renderer::RGB2DWORD(247, 222, 191);
 //        lpDDSKarte->Blt(&rcRectdes, nullptr, nullptr, DDBLT_COLORFILL, &ddbltfx);
 
@@ -198,7 +193,7 @@ void Generate()
 //    ddbltfx.dwFillColor = Renderer::RGB2DWORD(0, 0, 0);
 //        lpDDSScape->Blt(&rcRectdes, nullptr, nullptr, DDBLT_COLORFILL, &ddbltfx);
 
-    for (short y = 0; y < MAX_TILESY; y++) {
+    for (short y = 0; y < MAX_TILES_Y; y++) {
         for (short x = 0; x < MAX_TILES_X; x++) {
             if (!Landscape[x][y].Discovered) {
                 continue;    // Nicht entdeckte Felder nicht malen
@@ -208,13 +203,13 @@ void Generate()
             rcRectdes.top = Landscape[x][y].yScreen;
             rcRectdes.right = rcRectdes.left + TILE_SIZE_X;
             rcRectdes.bottom = rcRectdes.top + TILE_SIZE_Y;
-
-            if (Landscape[x][y].Terrain == 4) {
+ 
+            if (Landscape[x][y].Terrain == TERRAIN_WET) {
                 rcRectsrc.left = TILE_SIZE_X * Landscape[x][y].Type;
                 rcRectsrc.right = TILE_SIZE_X * Landscape[x][y].Type + TILE_SIZE_X;
                 rcRectsrc.top = 0;
                 rcRectsrc.bottom = TILE_SIZE_Y;
-            } else if (Landscape[x][y].Terrain == 0) { // trockenes Land
+            } else if (Landscape[x][y].Terrain == TERRAIN_DRY) { // trockenes Land
                 rcRectsrc.left = TILE_SIZE_X * Landscape[x][y].Type;
                 rcRectsrc.right = TILE_SIZE_X * Landscape[x][y].Type + TILE_SIZE_X;
                 rcRectsrc.top = 4 * TILE_SIZE_Y;
@@ -243,7 +238,7 @@ void Generate()
             }
 
             // Landschaftskacheln zeichnen
-            Renderer::BlitToLandscape(lpDDSMisc);
+            Renderer::BlitToLandscape(lpDDSTiles);
 
             // Gitter drüberlegen
             if (Gitter) {
@@ -251,7 +246,7 @@ void Generate()
                 rcRectsrc.right = TILE_SIZE_X * Landscape[x][y].Type + TILE_SIZE_X;
                 rcRectsrc.top = 1 * TILE_SIZE_Y;
                 rcRectsrc.bottom = 1 * TILE_SIZE_Y + TILE_SIZE_Y;
-                Renderer::BlitToLandscape(lpDDSMisc);
+                Renderer::BlitToLandscape(lpDDSTiles);
             }
 
             // Draw landscape objects (if animations are switched off)
@@ -348,8 +343,8 @@ bool CheckRawMaterials()
 {
     short Benoetigt = 0; // Anzahl der Gesamtbenötigten Rohstoffe
 
-    for (short i = 0; i < SPRITE_COUNT; i++) {
-        Benoetigt += Bmp[Landscape[Guy.Pos.x][Guy.Pos.y].Object].RequiredRawMaterials[i];
+    for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+        Benoetigt += Bmp[Landscape[Guy.Pos.x][Guy.Pos.y].Object].RequiredMaterials[i].Amount;
     }
 
     float GebrauchtTmp = Benoetigt / static_cast<float>(Bmp[Landscape[Guy.Pos.x][Guy.Pos.y].Object].RequiredActionCases); // Soviel Rohstoffe werden für diesen Schritt benötigt
@@ -357,18 +352,21 @@ bool CheckRawMaterials()
                                          static_cast<short>(GebrauchtTmp * (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep - 1))); // Soviel Rohstoffe werden für diesen Schritt benötigt
 
 
+    SCAPE* tile = &(Landscape[Guy.Pos.x][Guy.Pos.y]);
+    
     while (true) {
         bool Check = false; // Wenn kein Rohstoff mehr vorhanden nur noch einmal die While-Schleife
 
-        for (short i = 0; i < SPRITE_COUNT; i++) {
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            RequiredMateral* mat = tile->RequiredMaterials + i;
+            
             if (Gebraucht == 0) {
                 return true;
             }
 
-            if ((Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] > 0) &&
-                    (Guy.Inventory[i] > 0)) {
-                Guy.Inventory[i]--;
-                Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i]--;
+            if ((mat->Amount > 0) && (Guy.Inventory[mat->Material]) > 0) {
+                Guy.Inventory[mat->Material]--;
+                mat->Amount--;
                 Gebraucht--;
 
                 if (Gebraucht == 0) {
@@ -466,10 +464,10 @@ void Compute(short MinimumSize, short maximumSize)// Size of the island in numbe
     };
 
     short MidX = MAX_TILES_X / 2 - 1;
-    short MidY = MAX_TILESY / 2 - 1;
+    short MidY = MAX_TILES_Y / 2 - 1;
 
     for (short m = 0; m < 1000; m++) { // 100mal wiederholen, oder bis eine geeignete Insel gefunden ist
-        for (short y = 0; y < MAX_TILESY; y++)
+        for (short y = 0; y < MAX_TILES_Y; y++)
             for (short x = 0; x < MAX_TILES_X; x++) {
                 Landscape[x][y].Type = 0;
                 Landscape[x][y].Terrain = 0;
@@ -477,7 +475,7 @@ void Compute(short MinimumSize, short maximumSize)// Size of the island in numbe
                 Landscape[x][y].Marked = false;
                 Landscape[x][y].Walkable = true;
                 Landscape[x][y].Discovered = false;
-                Landscape[x][y].RunningTime = 1;
+                Landscape[x][y].Slowdown = 1;
                 Landscape[x][y].Object = Tiles::INVALID;
                 Landscape[x][y].ReverseAnimation = false;
                 Landscape[x][y].ObjectPosOffset.x = 0;
@@ -487,8 +485,9 @@ void Compute(short MinimumSize, short maximumSize)// Size of the island in numbe
                 Landscape[x][y].GPosAlt.x = 0;
                 Landscape[x][y].GPosAlt.y = 0;
 
-                for (i = 0; i < SPRITE_COUNT; i++) {
-                    Landscape[x][y].RequiredRawMaterials[i] = 0;
+                for (i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+                    Landscape[x][y].RequiredMaterials[i].Amount = 0;
+                    Landscape[x][y].RequiredMaterials[i].Material = 0;
                 }
 
                 Landscape[x][y].FireTimer = 0;
@@ -919,20 +918,20 @@ void Compute(short MinimumSize, short maximumSize)// Size of the island in numbe
         short Anzahl = 0; // Anzahl der Landstücke
         bool CheckRand = true; // Reicht die Insel bis zum Rand?
 
-        for (y = 0; y < MAX_TILESY; y++) // Landfläche zählen
+        for (y = 0; y < MAX_TILES_Y; y++) // Landfläche zählen
             for (x = 0; x < MAX_TILES_X; x++) {
                 if (Landscape[x][y].Height > 0) {
                     Anzahl++;
                 }
 
                 if (Landscape[x][y].Type == 0) {
-                    Landscape[x][y].RunningTime = 1;
+                    Landscape[x][y].Slowdown = 1;
                 } else {
-                    Landscape[x][y].RunningTime = 2;
+                    Landscape[x][y].Slowdown = 2;
                 }
 
                 if ((Landscape[x][y].Type != 0) &&
-                        ((x <= 2) || (x >= MAX_TILES_X - 2) || (y <= 2) || (y >= MAX_TILESY - 2))) {
+                        ((x <= 2) || (x >= MAX_TILES_X - 2) || (y <= 2) || (y >= MAX_TILES_Y - 2))) {
                     CheckRand = false;
                 }
             }
@@ -947,7 +946,7 @@ void CreateSea() // Das Meer und den Strand bestimmen
 {
     short x, y;
 
-    for (y = 0; y < MAX_TILESY; y++) // Meer rausfinden
+    for (y = 0; y < MAX_TILES_Y; y++) // Meer rausfinden
         for (x = 0; x < MAX_TILES_X; x++) {
             if ((Landscape[x][y].Height < 0) ||
                     ((Landscape[x][y].Height == 0) && (Landscape[x][y].Type == 0))) {
@@ -968,7 +967,7 @@ void CreateSea() // Das Meer und den Strand bestimmen
             }
         }
 
-    for (y = 1; y < MAX_TILESY - 1; y++) // Strand rausfinden
+    for (y = 1; y < MAX_TILES_Y - 1; y++) // Strand rausfinden
         for (x = 1; x < MAX_TILES_X - 1; x++) { // Alle Möglichkeiten durchgehen
             if ((Landscape[x][y].Type == 0) && (Landscape[x][y].Height == 0)) {
                 short Anzahl = 0; // Anzahl von angrenzenden Landstücken rausfinden
@@ -1044,7 +1043,7 @@ void ToggleIsInBoat()
     IsInBoat = !IsInBoat;
 
     // Begehbarkeit umdrehen
-    for (short y = 0; y < MAX_TILESY; y++) {
+    for (short y = 0; y < MAX_TILES_Y; y++) {
         for (short x = 0; x < MAX_TILES_X; x++) {
             Landscape[x][y].Walkable = !Landscape[x][y].Walkable;
         }
@@ -1110,7 +1109,7 @@ void CheckPipe(short x, short y)
 
 void FillPipe()
 {
-    for (short y = 0; y < MAX_TILESY; y++)
+    for (short y = 0; y < MAX_TILES_Y; y++)
         for (short x = 0; x < MAX_TILES_X; x++) {
             if ((Landscape[x][y].Object == Tiles::PIPE) && (Landscape[x][y].AnimationPhase < Bmp[Tiles::PIPE].AnimationPhaseCount)) {
                 Landscape[x][y].AnimationPhase = 0;
@@ -1128,7 +1127,7 @@ void FillPipe()
         }
 
     // StartRohr finden
-    for (short y = 0; y < MAX_TILESY; y++)
+    for (short y = 0; y < MAX_TILES_Y; y++)
         for (short x = 0; x < MAX_TILES_X; x++) {
             if ((Landscape[x][y].Object >= Tiles::RIVER_1) && (Landscape[x][y].Object <= Tiles::FLOODGATE_6)) {
                 if (Landscape[x][y].Terrain == 0) {
@@ -1210,7 +1209,7 @@ void FillPipe()
         }
 
     // Felder auf trockenen Wiesen löschen
-    for (short y = 0; y < MAX_TILESY; y++) {
+    for (short y = 0; y < MAX_TILES_Y; y++) {
         for (short x = 0; x < MAX_TILES_X; x++) {
             if ((Landscape[x][y].Object == Tiles::FIELD) && (Landscape[x][y].Terrain == 0)) {
                 Landscape[x][y].Object = Tiles::INVALID;
@@ -1273,7 +1272,7 @@ void CreateRiver() // Number of rivers and the minimum length
                 hasFound = true;
 
                 x0 = rand() % MAX_TILES_X; // determine appropriate source/spring
-                y0 = rand() % MAX_TILESY;
+                y0 = rand() % MAX_TILES_Y;
 
                 if (CheckRiverFlow(x0, y0)) {
                     hasFound = false;
@@ -1618,7 +1617,7 @@ void CreateTrees(short percent)
     Coordinate Pos; // There is the tree
     bool hasBigTree = false; // there is already a big tree
 
-    for (short y = 0; y < MAX_TILESY; y++)//Alle Kacheln durchgehen
+    for (short y = 0; y < MAX_TILES_Y; y++)//Alle Kacheln durchgehen
         for (short x = 0; x < MAX_TILES_X; x++) {
             if ((Landscape[x][y].Object != -1) || ((Landscape[x][y].Terrain == 3) && (Landscape[x][y].Type == 0))) {
                 continue;
@@ -1675,7 +1674,7 @@ void CreatePirateWreck()
     case 0:
         x = MAX_TILES_X / 2;
 
-        for (short i = 0; i < MAX_TILESY; i++) {
+        for (short i = 0; i < MAX_TILES_Y; i++) {
             if (Landscape[x][i].Terrain != 1) {
                 y = i - 1;
                 break;
@@ -1685,7 +1684,7 @@ void CreatePirateWreck()
         break;
 
     case 1:
-        y = MAX_TILESY / 2;
+        y = MAX_TILES_Y / 2;
 
         for (short i = MAX_TILES_X - 1; i >= 0; i--) {
             if (Landscape[i][y].Terrain != 1) {
@@ -1699,7 +1698,7 @@ void CreatePirateWreck()
     case 2:
         x = MAX_TILES_X / 2;
 
-        for (short i = MAX_TILESY - 1; i >= 0; i--) {
+        for (short i = MAX_TILES_Y - 1; i >= 0; i--) {
             if (Landscape[x][i].Terrain != 1) {
                 y = i + 1;
                 break;
@@ -1724,7 +1723,7 @@ void Treasure()
 
         // This tile is viewed
         short x = rand() % (MAX_TILES_X - 1);
-        short y = rand() % (MAX_TILESY - 1);
+        short y = rand() % (MAX_TILES_Y - 1);
 
         // only on flat tiles without an object
         if ((Landscape[x][y].Object == -1) && (Landscape[x][y].Type == 0) && (Landscape[x][y].Terrain != 3)) {

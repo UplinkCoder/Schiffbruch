@@ -98,7 +98,7 @@ void UpdateMousePosition(short Button, short Push, short xDiff, short yDiff)
                 (Landscape[Erg.x][Erg.y].Discovered) && (!Guy.IsActive) &&
                 ((Erg.x != Guy.Pos.x) || (Erg.y != Guy.Pos.y)) &&
                 (Erg.x > 0) && (Erg.x < MAX_TILES_X - 1) &&
-                (Erg.y > 0) && (Erg.y < MAX_TILESY - 1)) {
+                (Erg.y > 0) && (Erg.y < MAX_TILES_Y - 1)) {
             // Klicksound abspielen
             PlaySound(Sound::CLICK2, 100);
 
@@ -961,9 +961,9 @@ void CalcGuyKoor()
         World::UpdateDiscovered();
 
         if (IsInBoat) {
-            World::AddTime(0, Landscape[Route[(RoutePunkt + 1) / 2].x][Route[(RoutePunkt + 1) / 2].y].RunningTime * 3);
+            World::AddTime(0, Landscape[Route[(RoutePunkt + 1) / 2].x][Route[(RoutePunkt + 1) / 2].y].Slowdown * 3);
         } else {
-            World::AddTime(0, Landscape[Route[(RoutePunkt + 1) / 2].x][Route[(RoutePunkt + 1) / 2].y].RunningTime * 5);
+            World::AddTime(0, Landscape[Route[(RoutePunkt + 1) / 2].x][Route[(RoutePunkt + 1) / 2].y].Slowdown * 5);
         }
 
         World::AddResource(Resources::Food, -1);
@@ -1042,7 +1042,7 @@ void CalcGuyKoor()
         }
     }
 
-    if (CurrentFrame % Landscape[Guy.Pos.x][Guy.Pos.y].RunningTime == 0) {
+    if (CurrentFrame % Landscape[Guy.Pos.x][Guy.Pos.y].Slowdown == 0) {
         Step++;
         short i;
 
@@ -1073,7 +1073,7 @@ void CalcGuyKoor()
 void CalcKoor()
 {
     // Bildschirmkoordinaten berechnen und speichern
-    for (short y = 0; y < MAX_TILESY; y++)
+    for (short y = 0; y < MAX_TILES_Y; y++)
         for (short x = 0; x < MAX_TILES_X; x++) {
             Landscape[x][y].xScreen = TILE_SIZE_X / 2 * MAX_TILES_X + 32 +
                                   x * TILE_SIZE_X / 2 - y * TILE_SIZE_Y / 2 +
@@ -1086,11 +1086,11 @@ void CalcKoor()
                 ScapeGrenze.top = Landscape[x][y].yScreen;
             }
 
-            if ((x == 0) && (y == MAX_TILESY - 1)) {
+            if ((x == 0) && (y == MAX_TILES_Y - 1)) {
                 ScapeGrenze.left = Landscape[x][y].xScreen;
             }
 
-            if ((x == MAX_TILES_X - 1) && (y == MAX_TILESY - 1)) {
+            if ((x == MAX_TILES_X - 1) && (y == MAX_TILES_Y - 1)) {
                 ScapeGrenze.bottom = Landscape[x][y].yScreen + TILE_SIZE_Y;
             }
 
@@ -1280,7 +1280,7 @@ void Animationen()
     short i, j, loop; // Zwischenspeicher
 
 
-    for (short y = 0; y < MAX_TILESY; y++)
+    for (short y = 0; y < MAX_TILES_Y; y++)
         for (short x = 0; x < MAX_TILES_X; x++) {
             j = Landscape[x][y].Object;
 

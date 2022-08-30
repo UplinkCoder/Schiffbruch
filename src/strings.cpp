@@ -33,7 +33,7 @@ const char *GetLanguageString(const unsigned index) { static const char *strings
         "This area is not suitable, unfortunately.",
         "After tying an oblong stone to a branch, the whole thing looks like a harrow or a hoe. With this, I should be able to cultivate a field so that I don't have rely upon looking for these tedious bushes.",
         "Hoe",
-        "Day /a is over. Unfortunately, I haven't been successful in building a comfortable place to sleep.  Therefore, I have to sleep under the open sky tonight.  These wild animals won't leave me alone and my health has dropped to /b %. My chance of being rescued is /c %.",
+        "Day /a is over. Unfortunately, I haven't been successful in building a comfortable place to sleep.  Therefore, I have to sleep under the open sky tonight.  These wild animals won't leave me alone and my health has dropped to /b %.  My chance of being rescued is /c %.",
         "Finally, a ship!! Thanks to my intense efforts, I've been found and the ship has now dropped anchor at the island.  Should I leave this desolate island? /d ",
         "Build tent",
         "I don't have enough raw materials to build this.",

@@ -41,8 +41,8 @@ short Step, Steps;
 //                             links,      oben,                      rechts,                             unten
 RECT rcGesamt = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
 RECT rcPlayingSurface = {0, 0, MAX_SCREEN_X - 195, MAX_SCREEN_Y - 20};
-RECT rcPanel = {MAX_SCREEN_X - 205, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
-RECT rcKarte = {MAX_SCREEN_X - 158, 27, rcKarte.left + MAX_TILES_X * 2, rcKarte.top + (MAX_TILESY + 13) * 2};
+RECT rcPanel = {((short)(MAX_SCREEN_X - 204)), 0, MAX_SCREEN_X, MAX_SCREEN_Y};
+RECT rcKarte = {MAX_SCREEN_X - 158, 32, rcKarte.left + MAX_TILES_X * 2, rcKarte.top + (MAX_TILES_Y + 13) * 2};
 
 //Die Eckkoordinaten der Kacheln (Achtung: mit überlappendem Rand)
 Coordinate CornerCoord[13][4] = {
@@ -66,22 +66,25 @@ Coordinate CornerCoord[13][4] = {
 TextArea TextBereich[TEXTANZ];
 
 
-Coordinate Camera, // aktueller Kartenausschnitt
-           MousePosition, //     "    Mauskoordinaten
-           RouteDestination, RouteStart, // Koordinaten des Starts und des Endes der Route
-           Route[MAX_TILES_X * MAX_TILESY], // Liste der Routenpunkte
-           RouteKoor[2 * MAX_TILES_X * MAX_TILESY], // Liste der Routenkoordinaten
-           SchatzPos; // Hier ist der Schatz vergraben
+Coordinate Camera; // aktueller Kartenausschnitt
+Coordinate MousePosition; //     "    Mauskoordinaten
+Coordinate RouteDestination, RouteStart; // Koordinaten des Starts und des Endes der Route
+Coordinate Route[MAX_TILES_X * MAX_TILES_Y]; // Liste der Routenpunkte
+Coordinate RouteKoor[2 * MAX_TILES_X * MAX_TILES_Y]; // Liste der Routenkoordinaten
+Coordinate SchatzPos; // Hier ist der Schatz vergraben
+
+const RequiredMateral nullMaterial = {0, 0};
+
 GUY Guy;
 BMP Bmp[SPRITE_COUNT];
 WAV Wav[25]; // Sound::COUNT
 CREDITS CreditsList[10][10]; // Namenabfolge im Abspann
-SCAPE Landscape[MAX_TILES_X][MAX_TILESY];
+SCAPE Landscape[MAX_TILES_X][MAX_TILES_Y];
 
 // DirectDraw
 sf::Texture *screenTexture = nullptr; // DirectDraw primary surface
 sf::Texture *lpDDSBack = nullptr; // DirectDraw back surface
-sf::Texture *lpDDSMisc = nullptr; // DirectDraw Bilder surface
+sf::Texture *lpDDSTiles = nullptr; // DirectDraw Bilder surface
 sf::Texture *lpDDSPanel = nullptr; // DirectDraw Panel surface
 sf::Texture *lpDDSGuyAni = nullptr; // DirectDraw GuyAni surface
 sf::Texture *lpDDSAnimation = nullptr; // DirectDraw Animation surface
@@ -108,6 +111,79 @@ int s_previousCreditsOverlay;
 
 sf::Sprite *minimapPlayerSprite;
 sf::Texture *minimapPlayerTexture;
+
+const char* SurfaceToString(sf::Texture* surface)
+{
+    const char* s = "---";
+
+    if (surface == lpDDSInventar)
+    {
+        s = "Inventar";
+    }
+    if (surface == lpDDSButtons)
+    {
+        s = "Buttons";
+    }
+    if (surface == lpDDSCursor)
+    {
+        s = "Cursor";
+    }
+    if (surface == lpDDSLogo)
+    {
+        s = "Logo";
+    }
+    if (surface == lpDDSCredits)
+    {
+        s = "Credits";
+    }
+    if (surface == lpDDSBau)
+    {
+        s = "Bau";
+    }
+    if (surface ==lpDDSBaum)
+    {
+        s = "Baum";
+    }
+    if (surface == lpDDSPaper)
+    {
+        s = "Paper";
+    }
+    if (surface == lpDDSTextFeld)
+    {
+        s = "TextFeld";
+    }
+    if (surface == lpDDSSchrift2)
+    {
+        s = "Schrift2";
+    }
+    if (surface == lpDDSSchrift1)
+    {
+        s = "Schrift1";
+    }
+    if (surface == lpDDSKarte)
+    {
+        s = "Karte";
+    }
+    if (surface == lpDDSAnimation)
+    {
+        s = "Animation";
+    }
+    if (surface == lpDDSGuyAni)
+    {
+        s = "GuyAni";
+    }
+    if (surface == lpDDSPanel)
+    {
+        s = "Panel";
+    }
+    if (surface == lpDDSTiles)
+    {
+        s = "Misc";
+    }
+
+    return s;
+}
+
 
 //LPDIRECTDRAWPALETTE lpDDPal = nullptr; // DirectDraw palette
 //DDBLTFX ddbltfx; // DirectDraw Effekte

@@ -1257,11 +1257,12 @@ void treasure()
 
 void field()
 {
-    if (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep == 0) {
+    if (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep == 0)
+    {
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::FIELD].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::FIELD].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::FIELD;
@@ -1365,6 +1366,30 @@ void field()
     }
 }
 
+Coordinate search_surroundings(short object)
+{
+    Coordinate result = {-1, -1};
+
+    if ((Landscape[Guy.Pos.x][Guy.Pos.y].Object == object)) {
+        result.x = Guy.Pos.x;
+        result.y = Guy.Pos.y;
+    } else if (Landscape[Guy.Pos.x - 1][Guy.Pos.y].Object == object) {
+        result.x = Guy.Pos.x - 1;
+        result.y = Guy.Pos.y;
+    } else if (Landscape[Guy.Pos.x][Guy.Pos.y - 1].Object == object) {
+        result.x = Guy.Pos.x;
+        result.y = Guy.Pos.y - 1;
+    } else if (Landscape[Guy.Pos.x + 1][Guy.Pos.y].Object == object) {
+        result.x = Guy.Pos.x + 1;
+        result.y = Guy.Pos.y;
+    } else if (Landscape[Guy.Pos.x][Guy.Pos.y + 1].Object == object) {
+        result.x = Guy.Pos.x;
+        result.y = Guy.Pos.y + 1;
+    }
+    
+    return result;
+}
+
 void day_end()
 {
     Coordinate Erg;
@@ -1409,36 +1434,10 @@ void day_end()
         }
 
         // Wohnbare Objekte in der Umgebung suchen
-        Erg.x = -1;
-        Erg.y = -1;
-
-        if ((Landscape[Guy.Pos.x][Guy.Pos.y].Object == Tiles::TENT) || (Landscape[Guy.Pos.x][Guy.Pos.y].Object == Tiles::HOUSE_3)) {
-            Erg.x = Guy.Pos.x;
-            Erg.y = Guy.Pos.y;
-        } else if (Landscape[Guy.Pos.x - 1][Guy.Pos.y].Object == Tiles::HOUSE_3) {
-            Erg.x = Guy.Pos.x - 1;
-            Erg.y = Guy.Pos.y;
-        } else if (Landscape[Guy.Pos.x][Guy.Pos.y - 1].Object == Tiles::HOUSE_3) {
-            Erg.x = Guy.Pos.x;
-            Erg.y = Guy.Pos.y - 1;
-        } else if (Landscape[Guy.Pos.x + 1][Guy.Pos.y].Object == Tiles::HOUSE_3) {
-            Erg.x = Guy.Pos.x + 1;
-            Erg.y = Guy.Pos.y;
-        } else if (Landscape[Guy.Pos.x][Guy.Pos.y + 1].Object == Tiles::HOUSE_3) {
-            Erg.x = Guy.Pos.x;
-            Erg.y = Guy.Pos.y + 1;
-        } else if (Landscape[Guy.Pos.x - 1][Guy.Pos.y].Object == Tiles::TENT) {
-            Erg.x = Guy.Pos.x - 1;
-            Erg.y = Guy.Pos.y;
-        } else if (Landscape[Guy.Pos.x][Guy.Pos.y - 1].Object == Tiles::TENT) {
-            Erg.x = Guy.Pos.x;
-            Erg.y = Guy.Pos.y - 1;
-        } else if (Landscape[Guy.Pos.x + 1][Guy.Pos.y].Object == Tiles::TENT) {
-            Erg.x = Guy.Pos.x + 1;
-            Erg.y = Guy.Pos.y;
-        } else if (Landscape[Guy.Pos.x][Guy.Pos.y + 1].Object == Tiles::TENT) {
-            Erg.x = Guy.Pos.x;
-            Erg.y = Guy.Pos.y + 1;
+        Erg = search_surroundings(Tiles::TENT);
+        if (Erg.x == -1 && Erg.y == -1)
+        {
+            Erg = search_surroundings(Tiles::HOUSE_3);
         }
 
         if ((Erg.x != -1) && (Erg.y != -1)) {
@@ -1835,8 +1834,8 @@ void tent()
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::TENT;
         printf("drawing tent: %d\n", Landscape[Guy.Pos.x][Guy.Pos.y].Object);
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::TENT].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::TENT].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Landscape[Guy.Pos.x][Guy.Pos.y].Object].AnimationPhaseCount;
@@ -1939,8 +1938,8 @@ void boat()
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::BOAT;
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::BOAT].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::BOAT].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::BOAT].AnimationPhaseCount;
@@ -2041,8 +2040,8 @@ void pipe()
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::PIPE;
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::PIPE].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::PIPE].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::PIPE].AnimationPhaseCount;
@@ -2131,8 +2130,8 @@ void sos()
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::SOS;
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::SOS].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::SOS].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::SOS].AnimationPhaseCount;
@@ -2242,8 +2241,8 @@ void fireplace()
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
         Landscape[Guy.Pos.x][Guy.Pos.y].Object = Tiles::BONFIRE;
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::BONFIRE].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::BONFIRE].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::BONFIRE].AnimationPhaseCount;
@@ -2326,8 +2325,8 @@ void house1()
     if (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep == 0) {
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::HOUSE_1].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::HOUSE_1].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::HOUSE_1].AnimationPhaseCount;
@@ -2413,8 +2412,8 @@ void house2()
     if (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep == 0) {
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::HOUSE_2].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::HOUSE_2].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::HOUSE_2].AnimationPhaseCount;
@@ -2517,8 +2516,8 @@ void house3()
     if (Landscape[Guy.Pos.x][Guy.Pos.y].ConstructionActionStep == 0) {
         Guy.OriginalPosition = Guy.ScreenPosition; // Die Originalposition merken
 
-        for (short i = 0; i < Tiles::SPRITE_COUNT; i++) {
-            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredRawMaterials[i] = Bmp[Tiles::HOUSE_3].RequiredRawMaterials[i];
+        for (short i = 0; i < MAX_REQUIRED_MATERIALS; i++) {
+            Landscape[Guy.Pos.x][Guy.Pos.y].RequiredMaterials[i] = Bmp[Tiles::HOUSE_3].RequiredMaterials[i];
         }
 
         Landscape[Guy.Pos.x][Guy.Pos.y].AnimationPhase = Bmp[Tiles::HOUSE_3].AnimationPhaseCount;
